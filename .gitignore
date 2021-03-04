@@ -21,4 +21,3 @@ rebar3.crashdump
 doc/
 *.geojson
 *.kml
-serialized/
