@@ -1,0 +1,3 @@
+[submodule "extern/hplans"]
+	path = extern/hplans
+	url = https://github.com/gradoj/hplans.git
