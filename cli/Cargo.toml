@@ -1,0 +1,12 @@
+[package]
+name = "lwr"
+version = "0.1.0"
+authors = ["Jay Kickliter <jay@kickliter.com>"]
+edition = "2018"
+
+[dependencies]
+h3ron = {git = "https://github.com/nmandery/h3ron.git", rev = "2725064205cdfcc5c7ceb75268af04773435fc61"}
+geo-types = "*"
+
+[build-dependencies]
+byteorder = "1.4.2"
