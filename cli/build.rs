@@ -37,17 +37,17 @@ fn main() {
 }
 
 fn gen_region_header(regions: &[(&str, &str)], out: &mut BufWriter<File>) {
-    write!(out, "pub static REGIONS: &[(&str, &[u64])] = &[\n").unwrap();
+    writeln!(out, "pub static REGIONS: &[(&str, &[u64])] = &[").unwrap();
     for (region_name, _) in regions {
-        write!(out, "    (\"{}\", {}),\n", region_name, region_name).unwrap()
+        writeln!(out, "    (\"{}\", {}),", region_name, region_name).unwrap()
     }
-    write!(out, "];\n\n").unwrap();
+    writeln!(out, "];").unwrap();
 }
 
 fn gen_region_array(region_name: &str, mut h3_indices: BufReader<File>, out: &mut BufWriter<File>) {
-    write!(out, "pub static {}: &[u64] = &[\n", region_name).unwrap();
+    writeln!(out, "pub static {}: &[u64] = &[", region_name).unwrap();
     while let Ok(h3_index) = h3_indices.read_u64::<LE>() {
-        write!(out, "    {:#016x},\n", h3_index).unwrap()
+        writeln!(out, "    {:#016x},", h3_index).unwrap()
     }
-    write!(out, "];\n\n").unwrap();
+    writeln!(out, "];").unwrap();
 }
