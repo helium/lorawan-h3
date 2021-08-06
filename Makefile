@@ -3,6 +3,7 @@ SRCDIR ?= extern/hplans
 RESOLUTION ?= 7
 REGIONS ?= \
   AS923-3  \
+  AS923-4  \
   KR920    \
   AS923-2  \
   RU864    \

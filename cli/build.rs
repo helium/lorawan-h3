@@ -13,6 +13,7 @@ fn main() {
         ("AS923_1", "../serialized/AS923-1.res7.h3idx"),
         ("AS923_2", "../serialized/AS923-2.res7.h3idx"),
         ("AS923_3", "../serialized/AS923-3.res7.h3idx"),
+        ("AS923_4", "../serialized/AS923-4.res7.h3idx"),
         ("AU915", "../serialized/AU915.res7.h3idx"),
         ("CN779", "../serialized/CN779.res7.h3idx"),
         ("EU433", "../serialized/EU433.res7.h3idx"),
