@@ -35,10 +35,10 @@ to_serialized_h3(GeoJSONSrc, BinFilePath, H3Resolution) ->
 time_it(GeoJSONSrc, StepName, Fun) ->
     {Duration, Val} = timer:tc(Fun),
     case Duration of
-        _ when Duration < 1.0e+3 ->
-            io:format("~s: ~s took ~p us\n", [GeoJSONSrc, StepName, Duration]);
-        _ when Duration < 1.0e+6 ->
-            io:format("~s: ~s took ~p ms\n", [GeoJSONSrc, StepName, Duration / 1.0e+3]);
+        D when D < 1.0e+3 ->
+            io:format("~s: ~s took ~p us\n", [GeoJSONSrc, StepName, D]);
+        D when D < 1.0e+6 ->
+            io:format("~s: ~s took ~p ms\n", [GeoJSONSrc, StepName, D / 1.0e+3]);
         D ->
             io:format("~s: ~s took ~p s\n", [GeoJSONSrc, StepName, D / 1.0e+6])
     end,
