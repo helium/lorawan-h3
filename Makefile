@@ -7,7 +7,7 @@ REGIONS ?= \
   KR920    \
   AS923-2  \
   RU864    \
-  CN779    \
+  CN470    \
   IN865    \
   US915    \
   EU433    \

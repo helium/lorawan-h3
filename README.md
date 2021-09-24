@@ -29,7 +29,7 @@ searching AS923_1 for 8c754331db055ff
 searching AS923_2 for 8c754331db055ff
 searching AS923_3 for 8c754331db055ff
 searching AU915 for 8c754331db055ff
-searching CN779 for 8c754331db055ff
+searching CN470 for 8c754331db055ff
 searching EU433 for 8c754331db055ff
 searching IN865 for 8c754331db055ff
 searching KR920 for 8c754331db055ff
