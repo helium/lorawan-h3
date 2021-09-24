@@ -15,7 +15,7 @@ fn main() {
         ("AS923_3", "../serialized/AS923-3.res7.h3idx"),
         ("AS923_4", "../serialized/AS923-4.res7.h3idx"),
         ("AU915", "../serialized/AU915.res7.h3idx"),
-        ("CN779", "../serialized/CN779.res7.h3idx"),
+        ("CN470", "../serialized/CN470.res7.h3idx"),
         ("EU433", "../serialized/EU433.res7.h3idx"),
         ("IN865", "../serialized/IN865.res7.h3idx"),
         ("KR920", "../serialized/KR920.res7.h3idx"),
