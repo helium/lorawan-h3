@@ -1,11 +1,16 @@
 mod regions;
 use geo_types::Coordinate;
 use h3ron::{FromH3Index, H3Cell, Index};
+use rayon::prelude::*;
 use std::{env, process::exit, str::FromStr};
 
 fn main() {
     let args: Vec<String> = env::args().into_iter().skip(1).collect();
     let h3 = match args.as_slice() {
+        [cmd] if cmd == "overlaps" => {
+            overlaps();
+            return;
+        }
         [index_str] => u64::from_hex_dec_bin(index_str)
             .map_err(|_| "u64")
             .and_then(|index| {
@@ -59,6 +64,34 @@ fn lookup(target_index: H3Cell) -> Option<(&'static str, H3Cell)> {
         }
     }
     None
+}
+
+// Check every hex in every region against every hex in every other region for overlap.
+fn overlaps() {
+    for (region_outer, indices_outer) in regions::REGIONS {
+        for (region_inner, indices_inner) in regions::REGIONS
+            .iter()
+            .filter(|(region, _)| region != region_outer)
+        {
+            eprintln!("checking if {} contains {}", region_outer, region_inner);
+            for index_outer in indices_outer.iter().map(|i| H3Cell::new(*i)) {
+                indices_inner.par_iter().for_each(|i| {
+                    let index_inner = H3Cell::new(*i);
+                    if index_outer.contains(&index_inner) {
+                        println!(
+                            "\t{}:{:?}:res{} envelops {}:{:?}:res{}",
+                            region_outer,
+                            index_outer,
+                            index_outer.resolution(),
+                            region_inner,
+                            index_inner,
+                            index_inner.resolution()
+                        );
+                    }
+                });
+            }
+        }
+    }
 }
 
 trait FromHexDecBin: Sized {
