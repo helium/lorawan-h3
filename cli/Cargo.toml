@@ -5,8 +5,8 @@ authors = ["Jay Kickliter <jay@kickliter.com>"]
 edition = "2018"
 
 [dependencies]
-h3ron = {git = "https://github.com/nmandery/h3ron.git", rev = "2725064205cdfcc5c7ceb75268af04773435fc61"}
 geo-types = "*"
+h3ron = "*"
 
 [build-dependencies]
 byteorder = "1.4.2"
