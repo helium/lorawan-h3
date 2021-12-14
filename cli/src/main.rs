@@ -1,15 +1,15 @@
 mod regions;
 use geo_types::Coordinate;
-use h3ron::Index;
+use h3ron::{FromH3Index, H3Cell, Index};
 use std::{env, process::exit, str::FromStr};
 
 fn main() {
     let args: Vec<String> = env::args().into_iter().skip(1).collect();
-    let h3: Index = match args.as_slice() {
+    let h3 = match args.as_slice() {
         [index_str] => u64::from_hex_dec_bin(index_str)
             .map_err(|_| "u64")
             .and_then(|index| {
-                let index = Index::from(index);
+                let index = H3Cell::from_h3index(index);
                 if index.is_valid() {
                     Ok(index)
                 } else {
@@ -29,7 +29,7 @@ fn main() {
                     eprintln!("{} {} are not valid coordinates", lat_str, lon_str);
                     exit(1)
                 });
-            Index::from_coordinate(&Coordinate { x: xy[1], y: xy[0] }, 12)
+            H3Cell::from_coordinate(&Coordinate { x: xy[1], y: xy[0] }, 12).unwrap()
         }
         _ => {
             usage();
@@ -47,12 +47,12 @@ fn usage() {
     eprintln!("lwr <H3> | <LAT> <LON>");
 }
 
-fn lookup(target_index: Index) -> Option<(&'static str, Index)> {
+fn lookup(target_index: H3Cell) -> Option<(&'static str, H3Cell)> {
     for (region, indices) in regions::REGIONS {
         eprintln!("searching {} for {}", region, target_index.to_string());
         if let Some(parent_index) = indices
             .iter()
-            .map(|i| Index::new(*i))
+            .map(|i| H3Cell::new(*i))
             .find(|i| i.contains(&target_index))
         {
             return Some((region, parent_index));
