@@ -435,6 +435,7 @@ dependencies = [
  "byteorder",
  "geo-types",
  "h3ron",
+ "rayon",
 ]
 
 [[package]]
