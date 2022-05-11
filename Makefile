@@ -12,6 +12,7 @@ REGIONS ?= \
   US915    \
   EU433    \
   AS923-1  \
+  AS923-1B \
   Unknown  \
   AU915    \
   EU868
