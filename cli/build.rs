@@ -21,6 +21,7 @@ fn main() {
         ("IN865", "../serialized/IN865.res7.h3idx"),
         ("KR920", "../serialized/KR920.res7.h3idx"),
         ("RU864", "../serialized/RU864.res7.h3idx"),
+        ("CD900-1A", "../serialized/CD900-1A.res7.h3idx")
     ];
 
     let out_path: PathBuf = [std::env::var("OUT_DIR").unwrap().as_str(), "regions.rs"]

@@ -15,7 +15,8 @@ REGIONS ?= \
   AS923-1B \
   Unknown  \
   AU915    \
-  EU868
+  EU868    \
+  CD900-1A
 
 TARGETS = $(patsubst %,$(DESTDIR)/%.res$(RESOLUTION).h3idx, $(REGIONS))
 SOURCES = $(patsubst %,$(SRCDIR)/%.GEOJSON, $(REGIONS))
