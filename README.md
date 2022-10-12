@@ -113,10 +113,10 @@ Pre-generated serialized H3 regions.
 
 This can take an EXTREMELY long time, which is why the build by
 products are included in this repository. Regenerating these files are
-only needed if the [upstram geojson] changes.
+only needed if the [upstream geojson] changes.
 
 
-First build the erlang code as documented in the `generator/` section above.
+First, build the erlang code as documented in the `generator/` section above.
 
 ```
 $ make compile
