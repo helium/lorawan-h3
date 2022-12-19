@@ -2,10 +2,10 @@ use anyhow::Result;
 use byteorder::{ReadBytesExt, WriteBytesExt};
 use clap::Parser;
 use geojson::GeoJson;
-use hextree::h3ron::{self, collections::indexvec::IndexVec, H3Cell, ToH3Cells};
+use hextree::h3ron::{self, collections::indexvec::IndexVec, H3Cell, Index, ToH3Cells};
 use log;
 use micro_timer::timed;
-use std::{fs, path};
+use std::{cmp::Ordering, fs, path};
 
 #[derive(Debug, clap::Parser)]
 #[clap(version = env!("CARGO_PKG_VERSION"))]
@@ -64,12 +64,21 @@ fn to_h3_cells(geojson: GeoJson, resolution: u8) -> Result<IndexVec<H3Cell>> {
 
 #[timed]
 fn sort_cells(mut cells: IndexVec<H3Cell>) -> Result<IndexVec<H3Cell>> {
-    cells.sort_unstable();
+    cells.as_mut_slice().sort_by(|a, b| {
+        let ar = H3Cell::new(*a).resolution();
+        let br = H3Cell::new(*b).resolution();
+        if ar == br {
+            a.cmp(b)
+        } else {
+            ar.cmp(br)
+        }
+    });
     Ok(cells)
 }
 
 #[timed]
 fn dedup_cells(mut cells: IndexVec<H3Cell>) -> Result<IndexVec<H3Cell>> {
+    cells.sort_unstable();
     cells.dedup();
     Ok(cells)
 }
@@ -108,8 +117,8 @@ impl Generate {
     pub fn run(&self) -> Result<()> {
         read_geojson(&self.input)
             .and_then(|geojson| to_h3_cells(geojson, self.resolution))
-            .and_then(sort_cells)
             .and_then(dedup_cells)
+            .and_then(sort_cells)
             .and_then(compact_cells)
             .and_then(|cells| write_cells(cells, &self.output))
     }
