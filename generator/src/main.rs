@@ -68,9 +68,9 @@ fn sort_cells(mut cells: IndexVec<H3Cell>) -> Result<IndexVec<H3Cell>> {
         let ar = H3Cell::new(*a).resolution();
         let br = H3Cell::new(*b).resolution();
         if ar == br {
-            a.cmp(b)
+            Ordering::Equal
         } else {
-            ar.cmp(br)
+            ar.cmp(&br)
         }
     });
     Ok(cells)
@@ -118,8 +118,8 @@ impl Generate {
         read_geojson(&self.input)
             .and_then(|geojson| to_h3_cells(geojson, self.resolution))
             .and_then(dedup_cells)
-            .and_then(sort_cells)
             .and_then(compact_cells)
+            .and_then(sort_cells)
             .and_then(|cells| write_cells(cells, &self.output))
     }
 }
