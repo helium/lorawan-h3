@@ -3,6 +3,7 @@ use byteorder::{ReadBytesExt, WriteBytesExt};
 use clap::Parser;
 use geojson::GeoJson;
 use hextree::h3ron::{self, collections::indexvec::IndexVec, H3Cell, Index, ToH3Cells};
+#[allow(clippy::single_component_path_imports)]
 use log;
 use micro_timer::timed;
 use std::{cmp::Ordering, fs, path};
