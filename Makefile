@@ -1,4 +1,5 @@
-DESTDIR ?= tmp
+ERLDESTDIR ?= serialized/erlang
+RSDESTDIR ?= serialized/rust
 SRCDIR ?= extern/hplans
 RESOLUTION ?= 7
 REGIONS ?= \
@@ -17,23 +18,46 @@ REGIONS ?= \
   RU864 \
   US915
 
-TARGETS = $(patsubst %,$(DESTDIR)/%.res$(RESOLUTION).h3idx, $(REGIONS))
+TARGETS = $(patsubst %,$(ERLDESTDIR)/%.res$(RESOLUTION).h3idx, $(REGIONS)) $(patsubst %,$(RSDESTDIR)/%.res$(RESOLUTION).h3idx, $(REGIONS))
 SOURCES = $(patsubst %,$(SRCDIR)/%.GEOJSON, $(REGIONS))
 
-$(DESTDIR)/%.res$(RESOLUTION).h3idx: $(SRCDIR)/%.geojson
+$(ERLDESTDIR)/%.res$(RESOLUTION).h3idx: $(SRCDIR)/%.geojson
+	erl -pa _build/default/lib/*/ebin -noshell -eval "genh3:to_serialized_h3(\"$<\", \"$@\", $(RESOLUTION)), erlang:halt()"
+
+$(RSDESTDIR)/%.res$(RESOLUTION).h3idx: $(SRCDIR)/%.geojson
 	./target/release/lw-generator generate $< $@
 
 all: $(TARGETS)
 
-$(TARGETS): | $(SOURCES) $(DESTDIR)
+$(TARGETS): | $(SOURCES) $(ERLDESTDIR) $(RSDESTDIR)
 
 $(SOURCES): | $(SRCDIR)
 
-$(DESTDIR):
-	mkdir $(DESTDIR)
+$(ERLDESTDIR):
+	mkdir -p $(ERLDESTDIR)
+
+$(RSDESTDIR):
+	mkdir -p $(RSDESTDIR)
 
 extern/hplans:
 	git submodule update --init
 
 compile:
 	rebar3 compile
+
+# Hack, bad makefile hygine, remove before merge.
+check: $(TARGETS)
+	cmp $(ERLDESTDIR)/AS923-1.res7.h3idx  $(RSDESTDIR)/AS923-1.res7.h3idx
+	cmp $(ERLDESTDIR)/AS923-1B.res7.h3idx $(RSDESTDIR)/AS923-1B.res7.h3idx
+	cmp $(ERLDESTDIR)/AS923-2.res7.h3idx  $(RSDESTDIR)/AS923-2.res7.h3idx
+	cmp $(ERLDESTDIR)/AS923-3.res7.h3idx  $(RSDESTDIR)/AS923-3.res7.h3idx
+	cmp $(ERLDESTDIR)/AS923-4.res7.h3idx  $(RSDESTDIR)/AS923-4.res7.h3idx
+	cmp $(ERLDESTDIR)/AU915.res7.h3idx    $(RSDESTDIR)/AU915.res7.h3idx
+	cmp $(ERLDESTDIR)/CD900-1A.res7.h3idx $(RSDESTDIR)/CD900-1A.res7.h3idx
+	cmp $(ERLDESTDIR)/CN470.res7.h3idx    $(RSDESTDIR)/CN470.res7.h3idx
+	cmp $(ERLDESTDIR)/EU433.res7.h3idx    $(RSDESTDIR)/EU433.res7.h3idx
+	cmp $(ERLDESTDIR)/EU868.res7.h3idx    $(RSDESTDIR)/EU868.res7.h3idx
+	cmp $(ERLDESTDIR)/IN865.res7.h3idx    $(RSDESTDIR)/IN865.res7.h3idx
+	cmp $(ERLDESTDIR)/KR920.res7.h3idx    $(RSDESTDIR)/KR920.res7.h3idx
+	cmp $(ERLDESTDIR)/RU864.res7.h3idx    $(RSDESTDIR)/RU864.res7.h3idx
+	cmp $(ERLDESTDIR)/US915.res7.h3idx    $(RSDESTDIR)/US915.res7.h3idx

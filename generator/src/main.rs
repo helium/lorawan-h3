@@ -6,7 +6,7 @@ use hextree::h3ron::{self, collections::indexvec::IndexVec, H3Cell, Index, ToH3C
 #[allow(clippy::single_component_path_imports)]
 use log;
 use micro_timer::timed;
-use std::{cmp::Ordering, fs, path};
+use std::{fs, path};
 
 #[derive(Debug, clap::Parser)]
 #[clap(version = env!("CARGO_PKG_VERSION"))]
@@ -69,7 +69,7 @@ fn sort_cells(mut cells: IndexVec<H3Cell>) -> Result<IndexVec<H3Cell>> {
         let ar = H3Cell::new(*a).resolution();
         let br = H3Cell::new(*b).resolution();
         if ar == br {
-            Ordering::Equal
+            a.cmp(b)
         } else {
             ar.cmp(&br)
         }
