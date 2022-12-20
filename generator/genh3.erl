@@ -17,7 +17,14 @@ to_serialized_h3(GeoJSONSrc, BinFilePath, H3Resolution) ->
             GeoJSONSrc,
             sort,
             lists:sort(
-                fun(A, B) -> h3:get_resolution(A) < h3:get_resolution(B) end,
+                fun(A, B) ->
+                        Ra = h3:get_resolution(A),
+                        Rb = h3:get_resolution(B),
+                        case Ra == Rb of
+                            true -> A < B;
+                            false -> Ra < Rb
+                        end
+                end,
                 Compacted
             )
         ),
