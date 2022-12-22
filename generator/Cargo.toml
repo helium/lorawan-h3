@@ -8,12 +8,9 @@ edition = "2021"
 anyhow = {version = "1", features = ["backtrace"]}
 clap = {version = "4", features = ["derive"]}
 geojson = {version = "0.24", features = ["geo-types"]}
+h3ron = {version = "0.16"}
 geo-types = "*"
-hextree= "0.1"
 byteorder = "1.4"
 micro-timer = "0"
 log = "0"
 simple_logger = "4"
-
-[profile.release]
-debug = true
