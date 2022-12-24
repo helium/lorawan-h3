@@ -88,13 +88,13 @@ jobs:
 
       - name: Build Index
         run: |
-          ./lw-generator generate extern/hplans/${{ matrix.region }}.geojson ${{matrix.region }}.res7.h3idx
+          ./lw-generator generate extern/hplans/${{ matrix.region }}.geojson ${{matrix.region }}.h3idz
 
       - name: Cache Index
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.region }}.res7.h3idx
-          path: ${{matrix.region }}.res7.h3idx
+          name: ${{ matrix.region }}.h3idz
+          path: ${{matrix.region }}.h3idz
 
   release:
     runs-on: ubuntu-latest
@@ -119,4 +119,4 @@ jobs:
           files: |
             lw-genrator.tar.gz
             lw-generator.checksum
-            *.h3idx
+            *.h3idz

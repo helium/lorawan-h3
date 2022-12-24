@@ -1,6 +1,7 @@
 use anyhow::Result;
 use byteorder::{ReadBytesExt, WriteBytesExt};
 use clap::Parser;
+use flate2::{read::GzDecoder, write::GzEncoder, Compression};
 use geojson::GeoJson;
 use h3ron::{
     self, collections::indexvec::IndexVec, to_geo::ToLinkedPolygons, H3Cell, Index, ToH3Cells,
@@ -102,7 +103,8 @@ fn compact_cells(cells: IndexVec<H3Cell>) -> Result<IndexVec<H3Cell>> {
 
 #[timed]
 fn read_cells<P: AsRef<path::Path>>(file: P) -> Result<Vec<H3Cell>> {
-    let mut reader = fs::File::open(file.as_ref())?;
+    let file = fs::File::open(file.as_ref())?;
+    let mut reader = GzDecoder::new(file);
 
     let mut vec = Vec::new();
     while let Ok(entry) = reader.read_u64::<byteorder::LittleEndian>() {
@@ -113,10 +115,8 @@ fn read_cells<P: AsRef<path::Path>>(file: P) -> Result<Vec<H3Cell>> {
 
 #[timed]
 fn write_cells<P: AsRef<path::Path>>(cells: IndexVec<H3Cell>, output: P) -> Result<()> {
-    let mut writer = fs::OpenOptions::new()
-        .write(true)
-        .create(true)
-        .open(output.as_ref())?;
+    let file = fs::File::create(output.as_ref())?;
+    let mut writer = GzEncoder::new(file, Compression::default());
     for cell in cells.iter() {
         writer.write_u64::<byteorder::LittleEndian>(*cell)?;
     }
