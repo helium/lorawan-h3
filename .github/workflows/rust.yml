@@ -13,40 +13,32 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          default: true
-          override: true
           components: clippy, rustfmt
 
       - name: Cancel previous runs
-        uses: styfle/cancel-workflow-action@0.5.0
+        uses: styfle/cancel-workflow-action@0.11.0
         with:
           access_token: ${{ github.token }}
 
       - name: Check formatting
-        run: cargo fmt  -- --check
+        run: |
+          cargo fmt  -- --check
 
       - name: Clippy
-        uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features -- -D clippy::all -A clippy::single_component_path_imports
+        run: |
+          cargo clippy --all-features -- -D clippy::all -A clippy::single_component_path_imports
 
   build:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          default: true
-          override: true
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Cancel previous runs
-        uses: styfle/cancel-workflow-action@0.5.0
+        uses: styfle/cancel-workflow-action@0.11.0
         with:
           access_token: ${{ github.token }}
 
