@@ -13,5 +13,6 @@ h3ron = {version = "0.16"}
 geo-types = "*"
 byteorder = "1.4"
 micro-timer = "0"
+rayon = "1.6"
 log = "0"
 simple_logger = "4"

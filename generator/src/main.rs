@@ -1,14 +1,14 @@
 use anyhow::Result;
-use byteorder::{ReadBytesExt, WriteBytesExt};
+use byteorder::ReadBytesExt;
 use clap::Parser;
 use flate2::{read::GzDecoder, write::GzEncoder, Compression};
 use geojson::GeoJson;
-use h3ron::{
-    self, collections::indexvec::IndexVec, to_geo::ToLinkedPolygons, H3Cell, Index, ToH3Cells,
-};
+use h3ron::{self, to_geo::ToLinkedPolygons, H3Cell, Index};
 use log;
 use micro_timer::timed;
 use std::{fs, io::Write, path};
+
+mod polyfill;
 
 #[derive(Debug, clap::Parser)]
 #[clap(version = env!("CARGO_PKG_VERSION"))]
@@ -60,8 +60,9 @@ fn read_geojson<P: AsRef<path::Path>>(file: P) -> Result<GeoJson> {
 }
 
 #[timed]
-fn to_h3_cells(geojson: GeoJson, resolution: u8) -> Result<IndexVec<H3Cell>> {
-    let cells = geojson::quick_collection(&geojson)?.to_h3_cells(resolution)?;
+fn to_h3_cells(geojson: GeoJson, resolution: u8) -> Result<Vec<H3Cell>> {
+    let collection = geojson::quick_collection(&geojson)?;
+    let cells = polyfill::to_h3_cells(collection, resolution)?;
     Ok(cells)
 }
 
@@ -74,10 +75,10 @@ fn to_multi_polygon(cells: Vec<H3Cell>) -> Result<geo_types::MultiPolygon> {
 }
 
 #[timed]
-fn sort_cells(mut cells: IndexVec<H3Cell>) -> Result<IndexVec<H3Cell>> {
+fn sort_cells(mut cells: Vec<H3Cell>) -> Result<Vec<H3Cell>> {
     cells.as_mut_slice().sort_by(|a, b| {
-        let ar = H3Cell::new(*a).resolution();
-        let br = H3Cell::new(*b).resolution();
+        let ar = a.resolution();
+        let br = b.resolution();
         if ar == br {
             a.cmp(b)
         } else {
@@ -88,17 +89,16 @@ fn sort_cells(mut cells: IndexVec<H3Cell>) -> Result<IndexVec<H3Cell>> {
 }
 
 #[timed]
-fn dedup_cells(mut cells: IndexVec<H3Cell>) -> Result<IndexVec<H3Cell>> {
+fn dedup_cells(mut cells: Vec<H3Cell>) -> Result<Vec<H3Cell>> {
     cells.sort_unstable();
     cells.dedup();
     Ok(cells)
 }
 
 #[timed]
-fn compact_cells(cells: IndexVec<H3Cell>) -> Result<IndexVec<H3Cell>> {
-    let cells: Vec<H3Cell> = cells.try_into()?;
-    let compacted = h3ron::compact_cells(&cells)?;
-    Ok(compacted)
+fn compact_cells(cells: Vec<H3Cell>) -> Result<Vec<H3Cell>> {
+    let mut compacted = h3ron::compact_cells(&cells)?;
+    Ok(compacted.drain().collect())
 }
 
 #[timed]
@@ -114,11 +114,11 @@ fn read_cells<P: AsRef<path::Path>>(file: P) -> Result<Vec<H3Cell>> {
 }
 
 #[timed]
-fn write_cells<P: AsRef<path::Path>>(cells: IndexVec<H3Cell>, output: P) -> Result<()> {
+fn write_cells<P: AsRef<path::Path>>(cells: Vec<H3Cell>, output: P) -> Result<()> {
     let file = fs::File::create(output.as_ref())?;
     let mut writer = GzEncoder::new(file, Compression::default());
     for cell in cells.iter() {
-        writer.write_u64::<byteorder::LittleEndian>(*cell)?;
+        writer.write_all(&cell.to_le_bytes())?;
     }
     Ok(())
 }
