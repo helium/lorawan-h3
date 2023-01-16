@@ -2,110 +2,121 @@ name: Continuous Integration
 
 on:
   push:
-    branches: [ master ]
-    tags: ['v*']
+    branches: [main]
+    tags: ["v*"]
   pull_request:
-    branches: [ master ]
+    branches: [main]
 
 jobs:
-  build-linux:
+  hygiene:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          default: true
-          override: true
           components: clippy, rustfmt
 
       - name: Cancel previous runs
-        uses: styfle/cancel-workflow-action@0.5.0
+        uses: styfle/cancel-workflow-action@0.11.0
         with:
           access_token: ${{ github.token }}
 
       - name: Check formatting
-        run: cargo fmt  -- --check
+        run: |
+          cargo fmt  -- --check
 
       - name: Clippy
-        uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: -- -Dclippy::all
-
-      - name: Build
-        run: cargo build --all --release
-
-      - name: Name Release
-        if: startsWith(github.ref, 'refs/tags/')
-        id: name_release
-        run: echo ::set-output name=RELEASE::lwr-$(echo $GITHUB_REF | cut -d / -f 3)-x86-64-linux
-
-      - name: Prepare Release
-        if: startsWith(github.ref, 'refs/tags/')
-        env:
-          NAME: ${{ steps.name_release.outputs.RELEASE }}
         run: |
-          strip target/release/lwr
-          mkdir $NAME
-          mv target/release/lwr $NAME/
-          cp README.md $NAME/
-          cp LICENSE $NAME/
-          tar -zcvf $NAME.tar.gz $NAME/
+          cargo clippy --all-features -- -D clippy::all -A clippy::single_component_path_imports
 
-      - name: Push Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: |
-            ${{ steps.name_release.outputs.RELEASE }}.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build-mac:
-    runs-on: macos-latest
+  build:
+    runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: x86_64-apple-darwin
-          default: true
-          override: true
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Cancel previous runs
-        uses: styfle/cancel-workflow-action@0.5.0
+        uses: styfle/cancel-workflow-action@0.11.0
         with:
           access_token: ${{ github.token }}
 
       - name: Build
-        run: cargo build --all --release
+        run: |
+          cargo build --all --release
 
-      - name: Name Release
-        if: startsWith(github.ref, 'refs/tags/')
-        id: name_release
-        run: echo ::set-output name=RELEASE::lwr-$(echo $GITHUB_REF | cut -d / -f 3)-x86-64-macos
+      - name: Cache Binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: lw-generator
+          path: target/release/lw-generator
+
+  generate:
+    runs-on: ubuntu-latest
+    needs: [build, hygiene]
+    strategy:
+      matrix:
+        region:
+          - AS923-1B
+          - AS923-1
+          - AS923-2
+          - AS923-3
+          - AS923-4
+          - AU915
+          - CD900-1A
+          - CN470
+          - EU433
+          - EU868
+          - IN865
+          - KR920
+          - RU864
+          - US915
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install Binary
+        uses: actions/download-artifact@v3
+        with:
+          name: lw-generator
+
+      - name: Fix Binary
+        run: |
+          chmod +x ./lw-generator
+
+      - name: Build Index
+        run: |
+          ./lw-generator generate extern/hplans/${{ matrix.region }}.geojson ${{matrix.region }}.res7.h3idz
+
+      - name: Cache Index
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.region }}.res7.h3idz
+          path: ${{matrix.region }}.res7.h3idz
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [build, generate]
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
 
       - name: Prepare Release
-        if: startsWith(github.ref, 'refs/tags/')
-        env:
-          NAME: ${{ steps.name_release.outputs.RELEASE }}
         run: |
-          strip target/release/lwr
-          mkdir $NAME
-          mv target/release/lwr $NAME/
-          cp README.md $NAME/
-          cp LICENSE $NAME/
-          tar -zcvf $NAME.tar.gz $NAME/
+          chmod +x ./lw-generator
+          tar -zcv -C  -f lw-generator.tar.gz lw-generator
+          sha256sum -b --tag lw-generator.tar.gz > lw-generator.checksum
 
       - name: Push Release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: |
-            ${{ steps.name_release.outputs.RELEASE }}.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+        with:
+          files: |
+            lw-genrator.tar.gz
+            lw-generator.checksum
+            *.h3idz

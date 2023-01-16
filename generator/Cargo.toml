@@ -1,0 +1,18 @@
+[package]
+name = "lw-generator"
+version = "0.1.0"
+authors = ["Helium Foundation <info@helium.foundation>"]
+edition = "2021"
+
+[dependencies]
+anyhow = {version = "1", features = ["backtrace"]}
+clap = {version = "4", features = ["derive"]}
+geojson = {version = "0.24", features = ["geo-types"]}
+flate2 = "1"
+h3ron = {version = "0.16"}
+geo-types = "*"
+byteorder = "1.4"
+micro-timer = "0"
+rayon = "1.6"
+log = "0"
+simple_logger = "4"

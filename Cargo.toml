@@ -1,5 +1,8 @@
 [workspace]
 
 members = [
-    "cli",
+    "generator",
 ]
+
+[profile.release]
+debug = true
