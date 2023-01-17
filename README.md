@@ -41,4 +41,4 @@ $ make compile
 <!-- Links -->
 
 [h3]: https://h3geo.org
-[upstram geojson]: https://github.com/gradoj/hplans
+[upstream geojson]: https://github.com/dewi-alliance/hplans
