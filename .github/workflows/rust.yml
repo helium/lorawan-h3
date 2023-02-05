@@ -121,4 +121,4 @@ jobs:
           files: |
             lw-generator.tar.gz
             lw-generator.checksum
-            '**/*.h3idz'
+            **/*.h3idz
