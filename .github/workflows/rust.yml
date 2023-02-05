@@ -108,7 +108,7 @@ jobs:
 
       - name: Prepare Release
         run: |
-          chmod +x ./w-generator/lw-generator
+          chmod +x ./lw-generator/lw-generator
           tar -zcv -C lw-generator -f lw-generator.tar.gz lw-generator
           sha256sum -b --tag lw-generator.tar.gz > lw-generator.checksum
 
