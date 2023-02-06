@@ -93,6 +93,7 @@ jobs:
       - name: Cache Index
         uses: actions/upload-artifact@v3
         with:
+          if-no-files-found: error
           name: ${{ matrix.region }}.res7.h3idz
           path: ${{matrix.region }}.res7.h3idz
 
@@ -107,8 +108,8 @@ jobs:
 
       - name: Prepare Release
         run: |
-          chmod +x ./lw-generator
-          tar -zcv -C  -f lw-generator.tar.gz lw-generator
+          chmod +x ./lw-generator/lw-generator
+          tar -zcv -C lw-generator -f lw-generator.tar.gz lw-generator
           sha256sum -b --tag lw-generator.tar.gz > lw-generator.checksum
 
       - name: Push Release
@@ -116,7 +117,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          fail_on_unmatched_files: true
           files: |
-            lw-genrator.tar.gz
+            lw-generator.tar.gz
             lw-generator.checksum
-            *.h3idz
+            **/*.h3idz

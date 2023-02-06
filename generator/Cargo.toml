@@ -1,8 +1,12 @@
 [package]
 name = "lw-generator"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Helium Foundation <info@helium.foundation>"]
 edition = "2021"
+license = "Apache-2.0"
+description = "Helium region map generator"
+repository = "https://github.com/helium/lorawan-h3"
+readme = "README.md"
 
 [dependencies]
 anyhow = {version = "1", features = ["backtrace"]}
