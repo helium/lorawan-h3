@@ -96,7 +96,7 @@ jobs:
 
       - name: Build Index
         run: |
-          ./lw-generator generate extern/hplans/${{ matrix.region }}.geojson ${{matrix.region }}.res7.h3idz
+          ./lw-generator index generate extern/hplans/${{ matrix.region }}.geojson ${{matrix.region }}.res7.h3idz
 
       - name: Cache Index
         uses: actions/upload-artifact@v3
