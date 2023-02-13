@@ -1,5 +1,6 @@
 DESTDIR ?= serialized
-SRCDIR ?= extern/hplans
+INDEX_SRCDIR ?= extern/hplans
+PARAMS_SRCDIR ?= region_params
 RESOLUTION ?= 7
 REGIONS ?= \
   AS923-1 \
@@ -19,17 +20,26 @@ REGIONS ?= \
   RU864 \
   US915
 
-TARGETS = $(patsubst %,$(DESTDIR)/%.res$(RESOLUTION).h3idz, $(REGIONS)) $(patsubst %,$(RSDESTDIR)/%.res$(RESOLUTION).h3idx, $(REGIONS))
-SOURCES = $(patsubst %,$(SRCDIR)/%.GEOJSON, $(REGIONS))
+INDEX_TARGETS = $(patsubst %,$(DESTDIR)/%.res$(RESOLUTION).h3idz, $(REGIONS)) 
+PARAMS_TARGETS = $(patsubst %,$(DESTDIR)/%.rpz, $(REGIONS))
+INDEX_SOURCES = $(patsubst %,$(INDEX_SRCDIR)/%.geojson, $(REGIONS))
+PARAMS_SOURCES = $(patsubst %,$(PARAMS_SRCDIR)/%.json, $(REGIONS))
 
 $(DESTDIR)/%.res$(RESOLUTION).h3idz: $(SRCDIR)/%.geojson
-	./target/release/lw-generator generate $< $@ --resolution $(RESOLUTION)
+	./target/release/lw-generator index generate $< $@ --resolution $(RESOLUTION)
 
-all: compile $(TARGETS)
+$(DESTDIR)/%.rpz: $(SRCDIR)/%.json
+	./target/release/lw-generator params generate $< $@ 
 
-$(TARGETS): | $(SOURCES) $(DESTDIR) 
+all: compile index params
 
-$(SOURCES): | $(SRCDIR)
+$(INDEX_TARGETS): | $(INDEX_SOURCES) $(DESTDIR) 
+
+$(INDEX_SOURCES): | $(INDEX_SRCDIR)
+
+$(PARAMS_TARGETS): | $(PARAMS_SOURCES) $(DESTDIR) 
+
+$(PARAMS_SOURCES): | $(PARAMS_SRCDIR)
 
 $(DESTDIR):
 	mkdir -p $(DESTDIR)
@@ -39,3 +49,7 @@ extern/hplans:
 
 compile:
 	cargo build --release
+
+index: $(INDEX_TARGETS)
+
+params: $(PARAMS_TARGETS) 
