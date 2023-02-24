@@ -21,17 +21,17 @@ REGIONS ?= \
   US915
 
 INDEX_TARGETS = $(patsubst %,$(DESTDIR)/%.res$(RESOLUTION).h3idz, $(REGIONS)) 
-PARAMS_TARGETS = $(patsubst %,$(DESTDIR)/%.rpz, $(REGIONS))
 INDEX_SOURCES = $(patsubst %,$(INDEX_SRCDIR)/%.geojson, $(REGIONS))
+PARAMS_TARGETS = $(patsubst %,$(DESTDIR)/%.rpz, $(REGIONS))
 PARAMS_SOURCES = $(patsubst %,$(PARAMS_SRCDIR)/%.json, $(REGIONS))
 
 $(DESTDIR)/%.res$(RESOLUTION).h3idz: $(SRCDIR)/%.geojson
 	./target/release/lw-generator index generate $< $@ --resolution $(RESOLUTION)
 
 $(DESTDIR)/%.rpz: $(SRCDIR)/%.json
-	./target/release/lw-generator params generate $< $@ 
+	./target/release/lw-generator params generate $< $@
 
-all: compile index params
+all: compile params
 
 $(INDEX_TARGETS): | $(INDEX_SOURCES) $(DESTDIR) 
 
@@ -52,4 +52,4 @@ compile:
 
 index: $(INDEX_TARGETS)
 
-params: $(PARAMS_TARGETS) 
+params: $(PARAMS_TARGETS)

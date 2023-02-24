@@ -1,0 +1,124 @@
+{
+  "region_params": [
+    {
+      "channel_frequency": 917300000,
+      "bandwidth": 125000,
+      "max_eirp": 160,
+      "spreading": {
+        "tagged_spreading": [
+          {"region_spreading": "SF12", "max_packet_size": 25},
+          {"region_spreading": "SF11", "max_packet_size": 25},
+          {"region_spreading": "SF10", "max_packet_size": 25},
+          {"region_spreading": "SF9", "max_packet_size": 67},
+          {"region_spreading": "SF8", "max_packet_size": 139},
+          {"region_spreading": "SF7", "max_packet_size": 256}
+        ]
+      }
+    },
+    {
+      "channel_frequency": 917500000,
+      "bandwidth": 125000,
+      "max_eirp": 160,
+      "spreading": {
+        "tagged_spreading": [
+          {"region_spreading": "SF12", "max_packet_size": 25},
+          {"region_spreading": "SF11", "max_packet_size": 25},
+          {"region_spreading": "SF10", "max_packet_size": 25},
+          {"region_spreading": "SF9", "max_packet_size": 67},
+          {"region_spreading": "SF8", "max_packet_size": 139},
+          {"region_spreading": "SF7", "max_packet_size": 256}
+        ]
+      }
+    },
+    {
+      "channel_frequency": 917700000,
+      "bandwidth": 125000,
+      "max_eirp": 160,
+      "spreading": {
+        "tagged_spreading": [
+          {"region_spreading": "SF12", "max_packet_size": 25},
+          {"region_spreading": "SF11", "max_packet_size": 25},
+          {"region_spreading": "SF10", "max_packet_size": 25},
+          {"region_spreading": "SF9", "max_packet_size": 67},
+          {"region_spreading": "SF8", "max_packet_size": 139},
+          {"region_spreading": "SF7", "max_packet_size": 256}
+        ]
+      }
+    },
+    {
+      "channel_frequency": 917900000,
+      "bandwidth": 125000,
+      "max_eirp": 160,
+      "spreading": {
+        "tagged_spreading": [
+          {"region_spreading": "SF12", "max_packet_size": 25},
+          {"region_spreading": "SF11", "max_packet_size": 25},
+          {"region_spreading": "SF10", "max_packet_size": 25},
+          {"region_spreading": "SF9", "max_packet_size": 67},
+          {"region_spreading": "SF8", "max_packet_size": 139},
+          {"region_spreading": "SF7", "max_packet_size": 256}
+        ]
+      }
+    },
+    {
+      "channel_frequency": 918100000,
+      "bandwidth": 125000,
+      "max_eirp": 160,
+      "spreading": {
+        "tagged_spreading": [
+          {"region_spreading": "SF12", "max_packet_size": 25},
+          {"region_spreading": "SF11", "max_packet_size": 25},
+          {"region_spreading": "SF10", "max_packet_size": 25},
+          {"region_spreading": "SF9", "max_packet_size": 67},
+          {"region_spreading": "SF8", "max_packet_size": 139},
+          {"region_spreading": "SF7", "max_packet_size": 256}
+        ]
+      }
+    },
+    {
+      "channel_frequency": 918300000,
+      "bandwidth": 125000,
+      "max_eirp": 160,
+      "spreading": {
+        "tagged_spreading": [
+          {"region_spreading": "SF12", "max_packet_size": 25},
+          {"region_spreading": "SF11", "max_packet_size": 25},
+          {"region_spreading": "SF10", "max_packet_size": 25},
+          {"region_spreading": "SF9", "max_packet_size": 67},
+          {"region_spreading": "SF8", "max_packet_size": 139},
+          {"region_spreading": "SF7", "max_packet_size": 256}
+        ]
+      }
+    },
+    {
+      "channel_frequency": 918500000,
+      "bandwidth": 125000,
+      "max_eirp": 160,
+      "spreading": {
+        "tagged_spreading": [
+          {"region_spreading": "SF12", "max_packet_size": 25},
+          {"region_spreading": "SF11", "max_packet_size": 25},
+          {"region_spreading": "SF10", "max_packet_size": 25},
+          {"region_spreading": "SF9", "max_packet_size": 67},
+          {"region_spreading": "SF8", "max_packet_size": 139},
+          {"region_spreading": "SF7", "max_packet_size": 256}
+        ]
+      }
+    },
+    {
+      "channel_frequency": 918700000,
+      "bandwidth": 125000,
+      "max_eirp": 160,
+      "spreading": {
+        "tagged_spreading": [
+          {"region_spreading": "SF12", "max_packet_size": 25},
+          {"region_spreading": "SF11", "max_packet_size": 25},
+          {"region_spreading": "SF10", "max_packet_size": 25},
+          {"region_spreading": "SF9", "max_packet_size": 67},
+          {"region_spreading": "SF8", "max_packet_size": 139},
+          {"region_spreading": "SF7", "max_packet_size": 256}
+        ]
+      }
+    }
+  ]
+}
