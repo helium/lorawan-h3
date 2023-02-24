@@ -29,8 +29,8 @@ $(DESTDIR)/%.res$(RESOLUTION).h3idz: $(INDEX_SRCDIR)/%.geojson
 	./target/release/lw-generator index generate $< $@ --resolution $(RESOLUTION)
 
 $(DESTDIR)/%.rpz: $(PARAMS_SRCDIR)/%.json
-	./target/release/lw-generator params generate $< $@
-
+	@[ -f '$<' ] && (echo 'Processing $<' && ./target/release/lw-generator params generate $< $@) || echo 'Missing $<'
+	
 all: compile params
 
 $(INDEX_TARGETS): | $(INDEX_SOURCES) $(DESTDIR) 
