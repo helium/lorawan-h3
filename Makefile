@@ -25,10 +25,10 @@ INDEX_SOURCES = $(patsubst %,$(INDEX_SRCDIR)/%.geojson, $(REGIONS))
 PARAMS_TARGETS = $(patsubst %,$(DESTDIR)/%.rpz, $(REGIONS))
 PARAMS_SOURCES = $(patsubst %,$(PARAMS_SRCDIR)/%.json, $(REGIONS))
 
-$(DESTDIR)/%.res$(RESOLUTION).h3idz: $(SRCDIR)/%.geojson
+$(DESTDIR)/%.res$(RESOLUTION).h3idz: $(INDEX_SRCDIR)/%.geojson
 	./target/release/lw-generator index generate $< $@ --resolution $(RESOLUTION)
 
-$(DESTDIR)/%.rpz: $(SRCDIR)/%.json
+$(DESTDIR)/%.rpz: $(PARAMS_SRCDIR)/%.json
 	./target/release/lw-generator params generate $< $@
 
 all: compile params
