@@ -6,9 +6,9 @@
       "max_eirp": 161,
       "spreading": {
         "tagged_spreading": [
-          {"region_spreading": "SF12", "max_packet_size": 65},
-          {"region_spreading": "SF9", "max_packet_size": 129},
-          {"region_spreading": "SF8", "max_packet_size": 238}
+          { "region_spreading": "SF12", "max_packet_size": 65 },
+          { "region_spreading": "SF9", "max_packet_size": 129 },
+          { "region_spreading": "SF8", "max_packet_size": 238 }
         ]
       }
     },
@@ -18,9 +18,9 @@
       "max_eirp": 161,
       "spreading": {
         "tagged_spreading": [
-          {"region_spreading": "SF12", "max_packet_size": 65},
-          {"region_spreading": "SF9", "max_packet_size": 129},
-          {"region_spreading": "SF8", "max_packet_size": 238}
+          { "region_spreading": "SF12", "max_packet_size": 65 },
+          { "region_spreading": "SF9", "max_packet_size": 129 },
+          { "region_spreading": "SF8", "max_packet_size": 238 }
         ]
       }
     },
@@ -30,9 +30,9 @@
       "max_eirp": 161,
       "spreading": {
         "tagged_spreading": [
-          {"region_spreading": "SF12", "max_packet_size": 65},
-          {"region_spreading": "SF9", "max_packet_size": 129},
-          {"region_spreading": "SF8", "max_packet_size": 238}
+          { "region_spreading": "SF12", "max_packet_size": 65 },
+          { "region_spreading": "SF9", "max_packet_size": 129 },
+          { "region_spreading": "SF8", "max_packet_size": 238 }
         ]
       }
     },
@@ -42,9 +42,9 @@
       "max_eirp": 161,
       "spreading": {
         "tagged_spreading": [
-          {"region_spreading": "SF12", "max_packet_size": 65},
-          {"region_spreading": "SF9", "max_packet_size": 129},
-          {"region_spreading": "SF8", "max_packet_size": 238}
+          { "region_spreading": "SF12", "max_packet_size": 65 },
+          { "region_spreading": "SF9", "max_packet_size": 129 },
+          { "region_spreading": "SF8", "max_packet_size": 238 }
         ]
       }
     },
@@ -54,9 +54,9 @@
       "max_eirp": 161,
       "spreading": {
         "tagged_spreading": [
-          {"region_spreading": "SF12", "max_packet_size": 65},
-          {"region_spreading": "SF9", "max_packet_size": 129},
-          {"region_spreading": "SF8", "max_packet_size": 238}
+          { "region_spreading": "SF12", "max_packet_size": 65 },
+          { "region_spreading": "SF9", "max_packet_size": 129 },
+          { "region_spreading": "SF8", "max_packet_size": 238 }
         ]
       }
     },
@@ -66,9 +66,9 @@
       "max_eirp": 161,
       "spreading": {
         "tagged_spreading": [
-          {"region_spreading": "SF12", "max_packet_size": 65},
-          {"region_spreading": "SF9", "max_packet_size": 129},
-          {"region_spreading": "SF8", "max_packet_size": 238}
+          { "region_spreading": "SF12", "max_packet_size": 65 },
+          { "region_spreading": "SF9", "max_packet_size": 129 },
+          { "region_spreading": "SF8", "max_packet_size": 238 }
         ]
       }
     },
@@ -78,9 +78,9 @@
       "max_eirp": 161,
       "spreading": {
         "tagged_spreading": [
-          {"region_spreading": "SF12", "max_packet_size": 65},
-          {"region_spreading": "SF9", "max_packet_size": 129},
-          {"region_spreading": "SF8", "max_packet_size": 238}
+          { "region_spreading": "SF12", "max_packet_size": 65 },
+          { "region_spreading": "SF9", "max_packet_size": 129 },
+          { "region_spreading": "SF8", "max_packet_size": 238 }
         ]
       }
     },
@@ -90,9 +90,9 @@
       "max_eirp": 161,
       "spreading": {
         "tagged_spreading": [
-          {"region_spreading": "SF12", "max_packet_size": 65},
-          {"region_spreading": "SF9", "max_packet_size": 129},
-          {"region_spreading": "SF8", "max_packet_size": 238}
+          { "region_spreading": "SF12", "max_packet_size": 65 },
+          { "region_spreading": "SF9", "max_packet_size": 129 },
+          { "region_spreading": "SF8", "max_packet_size": 238 }
         ]
       }
     }
