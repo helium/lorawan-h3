@@ -30,6 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-matrix]
     strategy:
+      fail-fast: false
       matrix:
         region: ${{ fromJson(needs.build-matrix.outputs.matrix) }}
 
@@ -39,9 +40,13 @@ jobs:
 
       - name: Setup | Tools
         uses: jaxxstorm/action-install-gh-release@v1.5.0
+        env:
+          ## Allow install into PATH
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           repo: helium/lorawan-h3
-          tag: v0.1.0
+          tag: lw-generator-v0.2.1-rc.1
 
       - name: Build | Generate
         run: |

@@ -7,7 +7,7 @@ on:
       - "region_params/**"
       - "README.md"
     tags:
-      - v*
+      - lw-generator-v*
   pull_request:
     branches:
       - master
