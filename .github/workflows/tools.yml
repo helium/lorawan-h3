@@ -6,6 +6,8 @@ on:
       - "extern/**"
       - "region_params/**"
       - "README.md"
+    tags:
+      - v*
   pull_request:
     branches:
       - master
@@ -63,8 +65,8 @@ jobs:
 
       - name: Release | Prepare
         run: |
-          tar -zcv -C target/release -f lw-generator.tar.gz lw-generator
-          sha256sum -b --tag lw-generator.tar.gz > lw-generator.checksum
+          tar -zcv -C target/release -f linux_x86_64.tar.gz lw-generator
+          sha256sum -b --tag linux_x86_64.tar.gz > linux_x86_64.checksum
 
       - name: Release | Artifacts
         uses: softprops/action-gh-release@v1
@@ -72,6 +74,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           fail_on_unmatched_files: true
+          name: lw-generator
           files: |
-            lw-generator.tar.gz
-            lw-generator.checksum
+            linux_x86_64.tar.gz
+            linux_x86_64.checksum
