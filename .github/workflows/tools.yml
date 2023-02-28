@@ -63,8 +63,8 @@ jobs:
 
       - name: Release | Prepare
         run: |
-          tar -zcv -C target/release -f linux.x86.64.tar.gz lw-generator
-          sha256sum -b --tag linux.x86.64.tar.gz > linux.x86.64.checksum
+          tar -zcv -C target/release -f linux.x64.tar.gz lw-generator
+          sha256sum -b --tag linux.x64.tar.gz > linux.x64.checksum
 
       - name: Release | Artifacts
         uses: softprops/action-gh-release@v1
@@ -74,5 +74,5 @@ jobs:
           fail_on_unmatched_files: true
           name: lw-generator
           files: |
-            linux.x86.64.tar.gz
-            linux.x86.64.checksum
+            linux.x64.tar.gz
+            linux.x64.checksum

@@ -41,7 +41,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           repo: helium/lorawan-h3
-          tag: lw-generator-v0.2.1-rc.2
+          tag: lw-generator-v0.3.0
 
       - name: Build | Generate
         run: |
