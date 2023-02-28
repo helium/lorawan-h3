@@ -30,7 +30,7 @@ jobs:
 
       - name: Build | Generate
         run: |
-          for region in `find region_params -name '*.json' -exec basename -s '.json' {} +`; do
+          for region in `cat regions.txt`; do
             lw-generator params generate region_params/${region}.json ${region}.rpz
           done
 
