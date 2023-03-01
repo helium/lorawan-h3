@@ -1,0 +1,48 @@
+name: Region Params
+
+on:
+  push:
+    paths:
+      - "regions.txt"
+      - "region_params/**"
+      - ".github/workflows/region_params.yml"
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "regions.txt"
+      - "region_params/**"
+      - ".github/workflows/region_params.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup | Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup | Tools
+        uses: jaxxstorm/action-install-gh-release@v1.9.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          repo: helium/lorawan-h3
+          tag: lw-generator-v0.3.0
+
+      - name: Build | Generate
+        run: |
+          for region in `cat regions.txt`; do
+            lw-generator params generate region_params/${region}.json ${region}.rpz
+          done
+
+      - name: Release | Artifacts
+        if: startsWith(github.ref, 'refs/tags/region_params')
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          fail_on_unmatched_files: true
+          name: ${{github.ref_name}}
+          files: |
+            *.rpz
