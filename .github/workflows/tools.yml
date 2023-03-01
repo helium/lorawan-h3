@@ -1,0 +1,85 @@
+name: Tools
+
+on:
+  push:
+    paths:
+      - "**/Cargo.toml"
+      - "**/Cargo.lock"
+      - "generator/**"
+      - ".github/workflows/tools.yml"
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "**/Cargo.toml"
+      - "**/Cargo.lock"
+      - "generator/**"
+      - ".github/workflows/tools.yml"
+
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_NET_RETRY: 10
+  RUST_BACKTRACE: short
+  RUSTFLAGS: "-D warnings"
+  RUSTUP_MAX_RETRIES: 10
+
+jobs:
+  hygiene:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup | Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup | Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Setup | Protoc
+        run: sudo apt-get install -y protobuf-compiler
+
+      - name: Setup | Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build | Hygiene
+        run: |
+          cargo fmt  -- --check
+          cargo clippy --all-features --locked -- -D clippy::all
+
+  release:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/lw-generator')
+
+    steps:
+      - name: Setup | Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup | Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup | Protoc
+        run: sudo apt-get install -y protobuf-compiler
+
+      - name: Setup | Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build | Release
+        run: |
+          cargo build --all --release --locked
+
+      - name: Release | Prepare
+        run: |
+          tar -zcv -C target/release -f linux.x64.tar.gz lw-generator
+          sha256sum -b --tag linux.x64.tar.gz > linux.x64.checksum
+
+      - name: Release | Artifacts
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          fail_on_unmatched_files: true
+          name: ${{github.ref_name}}
+          files: |
+            linux.x64.tar.gz
+            linux.x64.checksum
