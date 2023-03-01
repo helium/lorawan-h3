@@ -16,6 +16,10 @@ with a `region_maps_YYYY.MM.DD` tag
 The region parameter files are built as [release assets] for this repository
 when tagged with a `region_params_YYYY.MM.DD` tag
 
+Supported regions are listed in the [regions.txt] file. New supported regions
+_must_ be added there with corresponding [upstream geojson] and [region
+parameters json] files.
+
 #### Example index
 
 Generate IN865.res7.h3irz fom IN865.geojson.
@@ -84,5 +88,6 @@ version in the `Setup | Tools` section for in the [region_maps.yml] and
 [region parameters json]: https://github.com/helium/lorawan-h3/region_params
 [cargo release]: https://crates.io/crates/cargo-release
 [release assets]: https://github.com/helium/lorawan-h3/releases
+[regions.txt]: https://github.com/helium/lorawan-h3/regions.txt
 [region_params.yml]: https://github.com/helium/lorawan-h3/.github/workflows/region_params.yml
 [region_maps.yml]: https://github.com/helium/lorawan-h3/.github/workflows/region_maps.yml
