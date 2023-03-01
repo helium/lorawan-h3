@@ -2,17 +2,19 @@ name: Tools
 
 on:
   push:
-    ignore-paths:
-      - "extern/**"
-      - "region_params/**"
-      - "README.md"
+    paths:
+      - "**/Cargo.toml"
+      - "**/Cargo.lock"
+      - "generator/**"
+      - ".github/workflows/tools.yml"
   pull_request:
     branches:
       - master
-    ignore-paths:
-      - "extern/**"
-      - "region_params/**"
-      - "README.md"
+    paths:
+      - "**/Cargo.toml"
+      - "**/Cargo.lock"
+      - "generator/**"
+      - ".github/workflows/tools.yml"
 
 jobs:
   hygiene:

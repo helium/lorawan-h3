@@ -3,12 +3,14 @@ name: Region Maps
 on:
   push:
     paths:
+      - "regions.txt"
       - "extern/hplans/**"
       - ".github/workflows/region_maps.yml"
   pull_request:
     branches:
       - master
     paths:
+      - "regions.txt"
       - "extern/hplans/**"
       - ".github/workflows/region_maps.yml"
 
