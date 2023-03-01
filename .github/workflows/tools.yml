@@ -57,8 +57,6 @@ jobs:
 
       - name: Setup | Rust
         uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy, rustfmt
 
       - name: Setup | Protoc
         run: sudo apt-get install -y protobuf-compiler
