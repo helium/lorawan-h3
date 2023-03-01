@@ -2,23 +2,7 @@ DESTDIR ?= serialized
 INDEX_SRCDIR ?= extern/hplans
 PARAMS_SRCDIR ?= region_params
 RESOLUTION ?= 7
-REGIONS ?= \
-  AS923-1 \
-  AS923-1B \
-  AS923-1C \
-  AS923-2 \
-  AS923-3 \
-  AS923-4 \
-  AU915 \
-  AU915-SB1 \
-  CD900-1A \
-  CN470 \
-  EU433 \
-  EU868 \
-  IN865 \
-  KR920 \
-  RU864 \
-  US915
+REGIONS ?= $(shell cat regions.txt)
 
 INDEX_TARGETS = $(patsubst %,$(DESTDIR)/%.res$(RESOLUTION).h3idz, $(REGIONS)) 
 INDEX_SOURCES = $(patsubst %,$(INDEX_SRCDIR)/%.geojson, $(REGIONS))
@@ -35,11 +19,11 @@ all: compile params
 
 $(INDEX_TARGETS): | $(INDEX_SOURCES) $(DESTDIR) 
 
-$(INDEX_SOURCES): | $(INDEX_SRCDIR)
+$(INDEX_SOURCES): | $(INDEX_SRCDIR) regions.txt
 
 $(PARAMS_TARGETS): | $(PARAMS_SOURCES) $(DESTDIR) 
 
-$(PARAMS_SOURCES): | $(PARAMS_SRCDIR)
+$(PARAMS_SOURCES): | $(PARAMS_SRCDIR) regions.txt
 
 $(DESTDIR):
 	mkdir -p $(DESTDIR)
