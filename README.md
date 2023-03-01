@@ -83,6 +83,6 @@ version in the `Setup | Tools` section for in the [region_maps.yml] and
 [upstream geojson]: https://github.com/dewi-alliance/hplans
 [region parameters json]: https://github.com/helium/lorawan-h3/region_params
 [cargo release]: https://crates.io/crates/cargo-release
-[release assets]: (https://github.com/helium/lorawan-h3/releases)
+[release assets]: https://github.com/helium/lorawan-h3/releases
 [region_params.yml]: https://github.com/helium/lorawan-h3/.github/workflows/region_params.yml
 [region_maps.yml]: https://github.com/helium/lorawan-h3/.github/workflows/region_maps.yml
