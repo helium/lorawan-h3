@@ -85,9 +85,9 @@ version in the `Setup | Tools` section for in the [region_maps.yml] and
 
 [h3]: https://h3geo.org
 [upstream geojson]: https://github.com/dewi-alliance/hplans
-[region parameters json]: https://github.com/helium/lorawan-h3/region_params
+[region parameters json]: https://github.com/helium/lorawan-h3/tree/main/region_params
 [cargo release]: https://crates.io/crates/cargo-release
 [release assets]: https://github.com/helium/lorawan-h3/releases
-[regions.txt]: https://github.com/helium/lorawan-h3/regions.txt
-[region_params.yml]: https://github.com/helium/lorawan-h3/.github/workflows/region_params.yml
-[region_maps.yml]: https://github.com/helium/lorawan-h3/.github/workflows/region_maps.yml
+[regions.txt]: https://github.com/helium/lorawan-h3/blob/main/regions.txt
+[region_params.yml]: https://github.com/helium/lorawan-h3/blob/main/.github/workflows/region_params.yml
+[region_maps.yml]: https://github.com/helium/lorawan-h3/blob/main/.github/workflows/region_maps.yml
