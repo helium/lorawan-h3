@@ -4,7 +4,9 @@ use byteorder::ReadBytesExt;
 use flate2::{read::GzDecoder, write::GzEncoder, Compression};
 use geojson::GeoJson;
 use h3ron::{self, to_geo::ToLinkedPolygons, H3Cell, Index};
-use std::{fs, io::Write, path};
+use log::debug;
+use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
+use std::{collections::HashMap, ffi::OsString, fs, io::Write, path, path::PathBuf};
 
 /// Commands on region indexes
 #[derive(Debug, clap::Args)]
@@ -24,12 +26,14 @@ pub enum IndexCmd {
     Generate(Generate),
     Export(Export),
     Find(Find),
+    Overlaps(Overlaps),
 }
 
 impl IndexCmd {
     pub fn run(&self) -> Result<()> {
         match self {
             Self::Generate(cmd) => cmd.run(),
+            Self::Overlaps(cmd) => cmd.run(),
             Self::Export(cmd) => cmd.run(),
             Self::Find(cmd) => cmd.run(),
         }
@@ -173,7 +177,6 @@ pub struct Find {
 
 impl Find {
     pub fn run(&self) -> Result<()> {
-        use std::collections::HashMap;
         let paths = std::fs::read_dir(&self.input)?;
         let needles: Vec<(String, hextree::Cell)> = self
             .cells
@@ -199,5 +202,111 @@ impl Find {
             }
         }
         print_json(&matches)
+    }
+}
+
+/// Compare index files against each other for H3 indices.
+///
+/// Returns a non-zero exit code if any overlaps are found.
+#[derive(Debug, clap::Args)]
+pub struct Overlaps {
+    /// Region files to compare
+    input: Vec<PathBuf>,
+}
+
+impl Overlaps {
+    pub fn run(&self) -> Result<()> {
+        let regions = {
+            let mut regions: Vec<(OsString, Vec<H3Cell>)> = Vec::with_capacity(self.input.len());
+            for path in self.input.iter() {
+                let cells = crate::index::read_cells(path)?;
+                let region_name = path
+                    .file_name()
+                    .expect("we were able read gzipped cells above. This must a valid filename");
+                regions.push((region_name.into(), cells))
+            }
+            regions
+        };
+
+        // Map of (region, region) to number of overlaps
+        let mut overlap_map: HashMap<(OsString, OsString), Vec<(H3Cell, H3Cell)>> = HashMap::new();
+
+        for a in &regions {
+            for b in &regions {
+                // Don't check a region against itself
+                if a.0 == b.0 {
+                    continue;
+                };
+
+                let [(region_lhs, polyfill_lhs), (region_rhs, polyfill_rhs)] = {
+                    // Sort by region name so don't do the same work twice
+                    // when processing the cartesian product of the
+                    // regions.
+                    let mut region_pair = [a, b];
+                    region_pair.sort_by(|a, b| a.1.cmp(&b.1));
+                    region_pair
+                };
+
+                if overlap_map.contains_key(&(region_lhs.clone(), region_rhs.clone())) {
+                    continue;
+                }
+
+                let region_lhs_str = region_lhs.to_string_lossy();
+                let region_rhs_str = region_rhs.to_string_lossy();
+
+                debug!(
+                    "Comparing '{}' against '{}'",
+                    region_lhs_str, region_rhs_str
+                );
+
+                let overlaps: Vec<(H3Cell, H3Cell)> = polyfill_rhs
+                    .par_iter()
+                    .flat_map(|target_cell| collect_relationships(polyfill_lhs, *target_cell))
+                    .collect();
+
+                debug!(
+                    "'{}' and '{}' have {} overlapping cells",
+                    region_lhs_str,
+                    region_rhs_str,
+                    overlaps.len()
+                );
+
+                overlap_map.insert((region_lhs.clone(), region_rhs.clone()), overlaps);
+            }
+        }
+
+        Ok(())
+    }
+}
+
+/// Returns a vector of any cells in the in `polyfill` that are
+/// related `target_cell`.
+///
+/// See [are_related] for more info.
+fn collect_relationships(polyfill: &[H3Cell], target_cell: H3Cell) -> Vec<(H3Cell, H3Cell)> {
+    polyfill
+        .iter()
+        .copied()
+        .zip(std::iter::repeat(target_cell))
+        .filter(|(poly_cell, target_cell)| are_related(*poly_cell, *target_cell))
+        .collect()
+}
+
+/// Returns `true` if any of the following are true:
+///
+/// - `lhs` and `rhs` the exact cell
+/// - `lhs` is a parent cell of `rhs`
+/// - `lhs` is a child cell of `rhs`
+fn are_related(lhs: H3Cell, rhs: H3Cell) -> bool {
+    if lhs.resolution() == rhs.resolution() {
+        lhs == rhs
+    } else if lhs.resolution() <= rhs.resolution() {
+        lhs == rhs
+            .get_parent(lhs.resolution())
+            .expect("we already checked that rhs is promotable to lhs's res")
+    } else {
+        rhs == lhs
+            .get_parent(lhs.resolution())
+            .expect("we already checked that rhs is promotable to lhs's res")
     }
 }
