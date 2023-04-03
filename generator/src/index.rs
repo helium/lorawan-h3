@@ -23,6 +23,7 @@ impl Cmd {
 pub enum IndexCmd {
     Generate(Generate),
     Export(Export),
+    Check(Check),
 }
 
 impl IndexCmd {
@@ -30,6 +31,7 @@ impl IndexCmd {
         match self {
             Self::Generate(cmd) => cmd.run(),
             Self::Export(cmd) => cmd.run(),
+            Self::Check(cmd) => cmd.run(),
         }
     }
 }
@@ -101,6 +103,18 @@ fn read_cells<P: AsRef<path::Path>>(file: P) -> Result<Vec<H3Cell>> {
     Ok(vec)
 }
 
+fn read_hexset<P: AsRef<path::Path>>(file: P) -> Result<hextree::HexTreeSet> {
+    let file = fs::File::open(file.as_ref())?;
+    let mut reader = GzDecoder::new(file);
+    let mut vec = Vec::new();
+
+    while let Ok(entry) = reader.read_u64::<byteorder::LittleEndian>() {
+        vec.push(hextree::Cell::from_raw(entry)?);
+    }
+
+    Ok(vec.iter().collect())
+}
+
 fn write_cells<P: AsRef<path::Path>>(cells: Vec<H3Cell>, output: P) -> Result<()> {
     let file = fs::File::create(output.as_ref())?;
     let mut writer = GzEncoder::new(file, Compression::default());
@@ -145,6 +159,29 @@ impl Export {
                 let geojson = GeoJson::from(geojson::Geometry::from(&multi_polygon));
                 write_geojson(geojson, &self.output)
             })?;
+        Ok(())
+    }
+}
+
+/// Check membership of a given h3 index in the given binary file
+#[derive(Debug, clap::Args)]
+pub struct Check {
+    input: path::PathBuf,
+    cell: h3ron::H3Cell,
+}
+
+impl Check {
+    pub fn run(&self) -> Result<()> {
+        let hex_set = read_hexset(&self.input)?;
+        if hex_set.contains(hextree::Cell::from_raw(*self.cell)?) {
+            println!("Cell {} in {}", self.cell.to_string(), self.input.display())
+        } else {
+            anyhow::bail!(
+                "Cell {} not in {}",
+                self.cell.to_string(),
+                self.input.display()
+            )
+        }
         Ok(())
     }
 }
