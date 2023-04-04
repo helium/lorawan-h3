@@ -233,20 +233,38 @@ impl Overlaps {
 
         for a in &regions {
             for b in &regions {
-                // Don't check a region against itself
+                // Normally the cartesian product of 'A B C D' and 'A B C D' would be:
+                //         A     B     C     D
+                //     A (A,A) (A,B) (A,C) (A,D)
+                //     B (B,A) (B,B) (B,C) (B,D)
+                //     C (C,A) (C,B) (C,C) (C,D)
+                //     D (D,A) (D,B) (D,C) (D,D)
+
+                // Obviously we don't want to compare index files to
+                // themselves, so we can remove them:
+                //         A     B     C     D
+                //     A   -   (A,B) (A,C) (A,D)
+                //     B (B,A)   -   (B,C) (B,D)
+                //     C (C,A) (C,B)   -   (C,D)
+                //     D (D,A) (D,B) (D,C)   -
                 if a.0 == b.0 {
                     continue;
                 };
 
                 let [(region_lhs, polyfill_lhs), (region_rhs, polyfill_rhs)] = {
-                    // Sort by region name so don't do the same work twice
-                    // when processing the cartesian product of the
-                    // regions.
                     let mut region_pair = [a, b];
                     region_pair.sort_by(|a, b| a.1.cmp(&b.1));
                     region_pair
                 };
 
+                // Additionally, we don't want to check (x,y) if we've
+                // already checked (y,x), so we can trim the set a
+                // little further to only upper right set:
+                //         A     B     C     D
+                //     A   -   (A,B) (A,C) (A,D)
+                //     B   -     -   (B,C) (B,D)
+                //     C   -     -     -   (C,D)
+                //     D   -     -     -     -
                 if overlap_map.contains_key(&(region_lhs.clone(), region_rhs.clone())) {
                     continue;
                 }
