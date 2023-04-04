@@ -275,7 +275,31 @@ impl Overlaps {
             }
         }
 
-        Ok(())
+        // TODO: we're throwing away information below about which
+        //       cells are overlapping. Do we want to summarize it better?
+        let overlap_summary: Vec<((OsString, OsString), usize)> = overlap_map
+            .into_iter()
+            .filter(|kv| !kv.1.is_empty())
+            .map(|(region_names, overlapping_cells)| (region_names, overlapping_cells.len()))
+            .collect();
+
+        if overlap_summary.is_empty() {
+            Ok(())
+        } else {
+            use std::fmt::Write;
+            let mut overlap_report = String::new();
+            writeln!(&mut overlap_report, "Found overlapping indices:")?;
+            for ((region_name_lhs, region_name_rhs), overlapping_index_count) in overlap_summary {
+                writeln!(
+                    &mut overlap_report,
+                    "'{}' & '{}': '{}'",
+                    region_name_lhs.to_string_lossy(),
+                    region_name_rhs.to_string_lossy(),
+                    overlapping_index_count
+                )?;
+            }
+            Err(anyhow::anyhow!("{}", overlap_report))
+        }
     }
 }
 
