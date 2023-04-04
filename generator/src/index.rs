@@ -216,19 +216,16 @@ pub struct Overlaps {
 
 impl Overlaps {
     pub fn run(&self) -> Result<()> {
-        let regions = {
-            let mut regions: Vec<(String, Vec<H3Cell>)> = Vec::with_capacity(self.input.len());
+        let regions: Vec<(String, Vec<H3Cell>)> = {
+            let mut regions = Vec::with_capacity(self.input.len());
             for path in self.input.iter() {
                 let cells = crate::index::read_cells(path)?;
-                let region_name = path
-                    .file_name()
-                    .expect("we were able read gzipped cells above. This must a valid filename");
-                regions.push((region_name.to_string_lossy().to_string(), cells))
+                regions.push((path.to_string_lossy().to_string(), cells))
             }
             regions
         };
 
-        // Map of (region, region) to number of overlaps
+        // Map of (region, region) to overlapping indices.
         let mut overlap_map: HashMap<(String, String), Vec<(H3Cell, H3Cell)>> = HashMap::new();
 
         for a in &regions {
@@ -293,7 +290,6 @@ impl Overlaps {
                     .or_insert(HashMap::new())
                     .insert(region_rhs, conflicting_indices);
             }
-
             overlap_report
         };
 
