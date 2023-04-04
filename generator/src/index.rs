@@ -228,8 +228,8 @@ impl Overlaps {
         // Map of (region, region) to overlapping indices.
         let mut overlap_map: HashMap<(&str, &str), Vec<(H3Cell, H3Cell)>> = HashMap::new();
 
-        for a in &regions {
-            for b in &regions {
+        for (region_lhs, polyfill_lhs) in &regions {
+            for (region_rhs, polyfill_rhs) in &regions {
                 // Normally the cartesian product of 'A B C D' and 'A B C D' would be:
                 //         A     B     C     D
                 //     A (A,A) (A,B) (A,C) (A,D)
@@ -244,25 +244,19 @@ impl Overlaps {
                 //     B (B,A)   -   (B,C) (B,D)
                 //     C (C,A) (C,B)   -   (C,D)
                 //     D (D,A) (D,B) (D,C)   -
-                if a.0 == b.0 {
+                if region_lhs == region_rhs {
                     continue;
                 };
 
-                let [(region_lhs, polyfill_lhs), (region_rhs, polyfill_rhs)] = {
-                    let mut region_pair = [a, b];
-                    region_pair.sort_by(|a, b| a.1.cmp(&b.1));
-                    region_pair
-                };
-
-                // Additionally, we don't want to check (x,y) if we've
-                // already checked (y,x), so we can trim the set a
+                // Additionally, we don't want to check (y,x) if we've
+                // already checked (x,y), so we can trim the set a
                 // little further to only upper right set:
                 //         A     B     C     D
                 //     A   -   (A,B) (A,C) (A,D)
                 //     B   -     -   (B,C) (B,D)
                 //     C   -     -     -   (C,D)
                 //     D   -     -     -     -
-                if overlap_map.contains_key(&(region_lhs, region_rhs)) {
+                if overlap_map.contains_key(&(region_rhs, region_lhs)) {
                     continue;
                 }
 
