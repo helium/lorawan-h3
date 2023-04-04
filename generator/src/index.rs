@@ -1,4 +1,4 @@
-use crate::polyfill;
+use crate::{polyfill, print_json};
 use anyhow::Result;
 use byteorder::ReadBytesExt;
 use flate2::{read::GzDecoder, write::GzEncoder, Compression};
@@ -23,7 +23,7 @@ impl Cmd {
 pub enum IndexCmd {
     Generate(Generate),
     Export(Export),
-    Check(Check),
+    Find(Find),
 }
 
 impl IndexCmd {
@@ -31,7 +31,7 @@ impl IndexCmd {
         match self {
             Self::Generate(cmd) => cmd.run(),
             Self::Export(cmd) => cmd.run(),
-            Self::Check(cmd) => cmd.run(),
+            Self::Find(cmd) => cmd.run(),
         }
     }
 }
@@ -163,25 +163,31 @@ impl Export {
     }
 }
 
-/// Check membership of a given h3 index in the given binary file
+/// Check membership of a given h3 index in all h3idz files in a given folder
 #[derive(Debug, clap::Args)]
-pub struct Check {
+pub struct Find {
     input: path::PathBuf,
     cell: h3ron::H3Cell,
 }
 
-impl Check {
+impl Find {
     pub fn run(&self) -> Result<()> {
-        let hex_set = read_hexset(&self.input)?;
-        if hex_set.contains(hextree::Cell::from_raw(*self.cell)?) {
-            println!("Cell {} in {}", self.cell.to_string(), self.input.display())
-        } else {
-            anyhow::bail!(
-                "Cell {} not in {}",
-                self.cell.to_string(),
-                self.input.display()
-            )
+        let paths = std::fs::read_dir(&self.input)?;
+        let mut matches = vec![];
+        let needle = hextree::Cell::from_raw(*self.cell)?;
+        for path in paths {
+            let entry = path?.path();
+            if entry.extension().map(|ext| ext == "h3idz").unwrap_or(false) {
+                let hex_set = read_hexset(&entry)?;
+                if hex_set.contains(needle) {
+                    matches.push(entry);
+                }
+            }
         }
-        Ok(())
+        let json = serde_json::json!({
+            "location": self.cell.to_string(),
+            "matches": matches,
+        });
+        print_json(&json)
     }
 }

@@ -39,3 +39,8 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
     cli.run()
 }
+
+pub(crate) fn print_json<T: ?Sized + serde::Serialize>(value: &T) -> Result<()> {
+    println!("{}", serde_json::to_string_pretty(value)?);
+    Ok(())
+}
