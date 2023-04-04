@@ -226,7 +226,7 @@ impl Overlaps {
         };
 
         // Map of (region, region) to overlapping indices.
-        let mut overlap_map: HashMap<(String, String), Vec<(H3Cell, H3Cell)>> = HashMap::new();
+        let mut overlap_map: HashMap<(&str, &str), Vec<(H3Cell, H3Cell)>> = HashMap::new();
 
         for a in &regions {
             for b in &regions {
@@ -262,7 +262,7 @@ impl Overlaps {
                 //     B   -     -   (B,C) (B,D)
                 //     C   -     -     -   (C,D)
                 //     D   -     -     -     -
-                if overlap_map.contains_key(&(region_lhs.clone(), region_rhs.clone())) {
+                if overlap_map.contains_key(&(region_lhs, region_rhs)) {
                     continue;
                 }
 
@@ -275,13 +275,14 @@ impl Overlaps {
                     .flat_map(|target_cell| collect_relationships(polyfill_lhs, *target_cell))
                     .collect();
 
-                overlap_map.insert((region_lhs.clone(), region_rhs.clone()), overlaps);
+                overlap_map.insert((region_lhs, region_rhs), overlaps);
             }
         }
 
-        let overlap_report = {
-            let mut overlap_report: HashMap<String, HashMap<String, Vec<(H3Cell, H3Cell)>>> =
-                HashMap::new();
+        type OverlapReport<'a> = HashMap<&'a str, HashMap<&'a str, Vec<(H3Cell, H3Cell)>>>;
+
+        let overlap_report: OverlapReport = {
+            let mut overlap_report = HashMap::new();
             for ((region_lhs, region_rhs), conflicting_indices) in
                 overlap_map.into_iter().filter(|(_, v)| !v.is_empty())
             {
