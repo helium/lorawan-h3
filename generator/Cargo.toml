@@ -16,7 +16,7 @@ helium-proto = { git = "https://github.com/helium/proto", branch="master" }
 serde = {version = "1", features = ["derive"]}
 serde_json = "1"
 flate2 = "1"
-h3ron = {version = "0.16"}
+h3ron = {version = "0.16", features = ["use-serde"]}
 geo-types = "*"
 hextree = "0"
 byteorder = "1.4"

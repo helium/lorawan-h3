@@ -6,7 +6,7 @@ use geojson::GeoJson;
 use h3ron::{self, to_geo::ToLinkedPolygons, H3Cell, Index};
 use log::debug;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
-use std::{collections::HashMap, ffi::OsString, fs, io::Write, path, path::PathBuf};
+use std::{collections::HashMap, fs, io::Write, path, path::PathBuf};
 
 /// Commands on region indexes
 #[derive(Debug, clap::Args)]
@@ -217,19 +217,19 @@ pub struct Overlaps {
 impl Overlaps {
     pub fn run(&self) -> Result<()> {
         let regions = {
-            let mut regions: Vec<(OsString, Vec<H3Cell>)> = Vec::with_capacity(self.input.len());
+            let mut regions: Vec<(String, Vec<H3Cell>)> = Vec::with_capacity(self.input.len());
             for path in self.input.iter() {
                 let cells = crate::index::read_cells(path)?;
                 let region_name = path
                     .file_name()
                     .expect("we were able read gzipped cells above. This must a valid filename");
-                regions.push((region_name.into(), cells))
+                regions.push((region_name.to_string_lossy().to_string(), cells))
             }
             regions
         };
 
         // Map of (region, region) to number of overlaps
-        let mut overlap_map: HashMap<(OsString, OsString), Vec<(H3Cell, H3Cell)>> = HashMap::new();
+        let mut overlap_map: HashMap<(String, String), Vec<(H3Cell, H3Cell)>> = HashMap::new();
 
         for a in &regions {
             for b in &regions {
@@ -269,54 +269,39 @@ impl Overlaps {
                     continue;
                 }
 
-                let region_lhs_str = region_lhs.to_string_lossy();
-                let region_rhs_str = region_rhs.to_string_lossy();
-
-                debug!(
-                    "Comparing '{}' against '{}'",
-                    region_lhs_str, region_rhs_str
-                );
+                // TODO: configure logger to not print this by default.
+                //       Or to print to stderr.
+                debug!("Comparing '{}' against '{}'", region_lhs, region_rhs);
 
                 let overlaps: Vec<(H3Cell, H3Cell)> = polyfill_rhs
                     .par_iter()
                     .flat_map(|target_cell| collect_relationships(polyfill_lhs, *target_cell))
                     .collect();
 
-                debug!(
-                    "'{}' and '{}' have {} overlapping cells",
-                    region_lhs_str,
-                    region_rhs_str,
-                    overlaps.len()
-                );
-
                 overlap_map.insert((region_lhs.clone(), region_rhs.clone()), overlaps);
             }
         }
 
-        // TODO: we're throwing away information below about which
-        //       cells are overlapping. Do we want to summarize it better?
-        let overlap_summary: Vec<((OsString, OsString), usize)> = overlap_map
-            .into_iter()
-            .filter(|kv| !kv.1.is_empty())
-            .map(|(region_names, overlapping_cells)| (region_names, overlapping_cells.len()))
-            .collect();
+        let overlap_report = {
+            let mut overlap_report: HashMap<String, HashMap<String, Vec<(H3Cell, H3Cell)>>> =
+                HashMap::new();
+            for ((region_lhs, region_rhs), conflicting_indices) in
+                overlap_map.into_iter().filter(|(_, v)| !v.is_empty())
+            {
+                overlap_report
+                    .entry(region_lhs)
+                    .or_insert(HashMap::new())
+                    .insert(region_rhs, conflicting_indices);
+            }
 
-        if overlap_summary.is_empty() {
+            overlap_report
+        };
+
+        if overlap_report.is_empty() {
             Ok(())
         } else {
-            use std::fmt::Write;
-            let mut overlap_report = String::new();
-            writeln!(&mut overlap_report, "Found overlapping indices:")?;
-            for ((region_name_lhs, region_name_rhs), overlapping_index_count) in overlap_summary {
-                writeln!(
-                    &mut overlap_report,
-                    "'{}' & '{}': '{}'",
-                    region_name_lhs.to_string_lossy(),
-                    region_name_rhs.to_string_lossy(),
-                    overlapping_index_count
-                )?;
-            }
-            Err(anyhow::anyhow!("{}", overlap_report))
+            println!("{}", serde_json::to_string_pretty(&overlap_report)?);
+            std::process::exit(1);
         }
     }
 }
