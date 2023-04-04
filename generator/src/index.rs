@@ -163,31 +163,41 @@ impl Export {
     }
 }
 
-/// Check membership of a given h3 index in all h3idz files in a given folder
+/// Check membership of one or moreh3 indexes in all h3idz files in a given
+/// folder
 #[derive(Debug, clap::Args)]
 pub struct Find {
     input: path::PathBuf,
-    cell: h3ron::H3Cell,
+    cells: Vec<h3ron::H3Cell>,
 }
 
 impl Find {
     pub fn run(&self) -> Result<()> {
+        use std::collections::HashMap;
         let paths = std::fs::read_dir(&self.input)?;
-        let mut matches = vec![];
-        let needle = hextree::Cell::from_raw(*self.cell)?;
-        for path in paths {
-            let entry = path?.path();
-            if entry.extension().map(|ext| ext == "h3idz").unwrap_or(false) {
-                let hex_set = read_hexset(&entry)?;
-                if hex_set.contains(needle) {
-                    matches.push(entry);
+        let needles: Vec<(String, hextree::Cell)> = self
+            .cells
+            .iter()
+            .map(|entry| hextree::Cell::from_raw(**entry).map(|cell| (entry.to_string(), cell)))
+            .collect::<hextree::Result<Vec<(String, hextree::Cell)>>>()?;
+        let mut matches: HashMap<String, Vec<path::PathBuf>> = HashMap::new();
+        for path_result in paths {
+            let path = path_result?.path();
+            if path.extension().map(|ext| ext == "h3idz").unwrap_or(false) {
+                let hex_set = read_hexset(&path)?;
+                for (name, needle) in &needles {
+                    if hex_set.contains(*needle) {
+                        let match_list = matches.entry(name.to_string()).or_insert(vec![]);
+
+                        // Avoid duplicate path entries if the same location is
+                        // specified multiple times
+                        if !match_list.contains(&path) {
+                            match_list.push(path.clone())
+                        }
+                    }
                 }
             }
         }
-        let json = serde_json::json!({
-            "location": self.cell.to_string(),
-            "matches": matches,
-        });
-        print_json(&json)
+        print_json(&matches)
     }
 }
