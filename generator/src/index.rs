@@ -1,4 +1,4 @@
-use crate::polyfill;
+use crate::{polyfill, print_json};
 use anyhow::Result;
 use byteorder::ReadBytesExt;
 use flate2::{read::GzDecoder, write::GzEncoder, Compression};
@@ -23,6 +23,7 @@ impl Cmd {
 pub enum IndexCmd {
     Generate(Generate),
     Export(Export),
+    Find(Find),
 }
 
 impl IndexCmd {
@@ -30,6 +31,7 @@ impl IndexCmd {
         match self {
             Self::Generate(cmd) => cmd.run(),
             Self::Export(cmd) => cmd.run(),
+            Self::Find(cmd) => cmd.run(),
         }
     }
 }
@@ -101,6 +103,18 @@ fn read_cells<P: AsRef<path::Path>>(file: P) -> Result<Vec<H3Cell>> {
     Ok(vec)
 }
 
+fn read_hexset<P: AsRef<path::Path>>(file: P) -> Result<hextree::HexTreeSet> {
+    let file = fs::File::open(file.as_ref())?;
+    let mut reader = GzDecoder::new(file);
+    let mut vec = Vec::new();
+
+    while let Ok(entry) = reader.read_u64::<byteorder::LittleEndian>() {
+        vec.push(hextree::Cell::from_raw(entry)?);
+    }
+
+    Ok(vec.iter().collect())
+}
+
 fn write_cells<P: AsRef<path::Path>>(cells: Vec<H3Cell>, output: P) -> Result<()> {
     let file = fs::File::create(output.as_ref())?;
     let mut writer = GzEncoder::new(file, Compression::default());
@@ -146,5 +160,44 @@ impl Export {
                 write_geojson(geojson, &self.output)
             })?;
         Ok(())
+    }
+}
+
+/// Check membership of one or moreh3 indexes in all h3idz files in a given
+/// folder
+#[derive(Debug, clap::Args)]
+pub struct Find {
+    input: path::PathBuf,
+    cells: Vec<h3ron::H3Cell>,
+}
+
+impl Find {
+    pub fn run(&self) -> Result<()> {
+        use std::collections::HashMap;
+        let paths = std::fs::read_dir(&self.input)?;
+        let needles: Vec<(String, hextree::Cell)> = self
+            .cells
+            .iter()
+            .map(|entry| hextree::Cell::from_raw(**entry).map(|cell| (entry.to_string(), cell)))
+            .collect::<hextree::Result<Vec<(String, hextree::Cell)>>>()?;
+        let mut matches: HashMap<String, Vec<path::PathBuf>> = HashMap::new();
+        for path_result in paths {
+            let path = path_result?.path();
+            if path.extension().map(|ext| ext == "h3idz").unwrap_or(false) {
+                let hex_set = read_hexset(&path)?;
+                for (name, needle) in &needles {
+                    if hex_set.contains(*needle) {
+                        let match_list = matches.entry(name.to_string()).or_insert(vec![]);
+
+                        // Avoid duplicate path entries if the same location is
+                        // specified multiple times
+                        if !match_list.contains(&path) {
+                            match_list.push(path.clone())
+                        }
+                    }
+                }
+            }
+        }
+        print_json(&matches)
     }
 }
