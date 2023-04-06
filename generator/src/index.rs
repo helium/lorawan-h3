@@ -178,19 +178,19 @@ pub struct Find {
 impl Find {
     pub fn run(&self) -> Result<()> {
         let paths = std::fs::read_dir(&self.input)?;
-        let needles: Vec<(String, hextree::Cell)> = self
+        let needles: Vec<(H3Cell, hextree::Cell)> = self
             .cells
             .iter()
-            .map(|entry| hextree::Cell::from_raw(**entry).map(|cell| (entry.to_string(), cell)))
-            .collect::<hextree::Result<Vec<(String, hextree::Cell)>>>()?;
-        let mut matches: HashMap<String, Vec<path::PathBuf>> = HashMap::new();
+            .map(|entry| hextree::Cell::from_raw(**entry).map(|cell| (*entry, cell)))
+            .collect::<hextree::Result<Vec<(H3Cell, hextree::Cell)>>>()?;
+        let mut matches: HashMap<H3Cell, Vec<path::PathBuf>> = HashMap::new();
         for path_result in paths {
             let path = path_result?.path();
             if path.extension().map(|ext| ext == "h3idz").unwrap_or(false) {
                 let hex_set = read_hexset(&path)?;
-                for (name, needle) in &needles {
+                for (cell, needle) in &needles {
                     if hex_set.contains(*needle) {
-                        let match_list = matches.entry(name.to_string()).or_insert(vec![]);
+                        let match_list = matches.entry(*cell).or_insert(vec![]);
 
                         // Avoid duplicate path entries if the same location is
                         // specified multiple times
