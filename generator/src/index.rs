@@ -212,6 +212,9 @@ impl Find {
 pub struct Overlaps {
     /// Region files to compare
     input: Vec<PathBuf>,
+    /// Print debug information
+    #[arg(short, long)]
+    debug: bool,
 }
 
 impl Overlaps {
@@ -260,9 +263,9 @@ impl Overlaps {
                     continue;
                 }
 
-                // TODO: configure logger to not print this by default.
-                //       Or to print to stderr.
-                debug!("Comparing '{}' against '{}'", region_lhs, region_rhs);
+                if self.debug {
+                    debug!("Comparing '{}' against '{}'", region_lhs, region_rhs);
+                }
 
                 let overlaps: Vec<(H3Cell, H3Cell)> = polyfill_rhs
                     .par_iter()
@@ -291,7 +294,7 @@ impl Overlaps {
         if overlap_report.is_empty() {
             Ok(())
         } else {
-            println!("{}", serde_json::to_string_pretty(&overlap_report)?);
+            print_json(&overlap_report)?;
             std::process::exit(1);
         }
     }
