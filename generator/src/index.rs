@@ -4,7 +4,9 @@ use byteorder::ReadBytesExt;
 use flate2::{read::GzDecoder, write::GzEncoder, Compression};
 use geojson::GeoJson;
 use h3ron::{self, to_geo::ToLinkedPolygons, H3Cell, Index};
-use std::{fs, io::Write, path};
+use log::debug;
+use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
+use std::{collections::HashMap, fs, io::Write, path, path::PathBuf};
 
 /// Commands on region indexes
 #[derive(Debug, clap::Args)]
@@ -24,12 +26,14 @@ pub enum IndexCmd {
     Generate(Generate),
     Export(Export),
     Find(Find),
+    Overlaps(Overlaps),
 }
 
 impl IndexCmd {
     pub fn run(&self) -> Result<()> {
         match self {
             Self::Generate(cmd) => cmd.run(),
+            Self::Overlaps(cmd) => cmd.run(),
             Self::Export(cmd) => cmd.run(),
             Self::Find(cmd) => cmd.run(),
         }
@@ -173,21 +177,20 @@ pub struct Find {
 
 impl Find {
     pub fn run(&self) -> Result<()> {
-        use std::collections::HashMap;
         let paths = std::fs::read_dir(&self.input)?;
-        let needles: Vec<(String, hextree::Cell)> = self
+        let needles: Vec<(H3Cell, hextree::Cell)> = self
             .cells
             .iter()
-            .map(|entry| hextree::Cell::from_raw(**entry).map(|cell| (entry.to_string(), cell)))
-            .collect::<hextree::Result<Vec<(String, hextree::Cell)>>>()?;
-        let mut matches: HashMap<String, Vec<path::PathBuf>> = HashMap::new();
+            .map(|entry| hextree::Cell::from_raw(**entry).map(|cell| (*entry, cell)))
+            .collect::<hextree::Result<Vec<(H3Cell, hextree::Cell)>>>()?;
+        let mut matches: HashMap<H3Cell, Vec<path::PathBuf>> = HashMap::new();
         for path_result in paths {
             let path = path_result?.path();
             if path.extension().map(|ext| ext == "h3idz").unwrap_or(false) {
                 let hex_set = read_hexset(&path)?;
-                for (name, needle) in &needles {
+                for (cell, needle) in &needles {
                     if hex_set.contains(*needle) {
-                        let match_list = matches.entry(name.to_string()).or_insert(vec![]);
+                        let match_list = matches.entry(*cell).or_insert(vec![]);
 
                         // Avoid duplicate path entries if the same location is
                         // specified multiple times
@@ -199,5 +202,132 @@ impl Find {
             }
         }
         print_json(&matches)
+    }
+}
+
+/// Compare index files against each other for H3 indices.
+///
+/// Returns a non-zero exit code if any overlaps are found.
+#[derive(Debug, clap::Args)]
+pub struct Overlaps {
+    /// Region files to compare
+    input: Vec<PathBuf>,
+    /// Print debug information
+    #[arg(short, long)]
+    debug: bool,
+}
+
+impl Overlaps {
+    pub fn run(&self) -> Result<()> {
+        let regions: Vec<(String, Vec<H3Cell>)> = {
+            let mut regions = Vec::with_capacity(self.input.len());
+            for path in self.input.iter() {
+                let cells = crate::index::read_cells(path)?;
+                regions.push((path.to_string_lossy().to_string(), cells))
+            }
+            regions
+        };
+
+        // Map of (region, region) to overlapping indices.
+        let mut overlap_map: HashMap<(&str, &str), Vec<(H3Cell, H3Cell)>> = HashMap::new();
+
+        for (region_lhs, polyfill_lhs) in &regions {
+            for (region_rhs, polyfill_rhs) in &regions {
+                // Normally the cartesian product of 'A B C D' and 'A B C D' would be:
+                //         A     B     C     D
+                //     A (A,A) (A,B) (A,C) (A,D)
+                //     B (B,A) (B,B) (B,C) (B,D)
+                //     C (C,A) (C,B) (C,C) (C,D)
+                //     D (D,A) (D,B) (D,C) (D,D)
+
+                // Obviously we don't want to compare index files to
+                // themselves, so we can remove them:
+                //         A     B     C     D
+                //     A   -   (A,B) (A,C) (A,D)
+                //     B (B,A)   -   (B,C) (B,D)
+                //     C (C,A) (C,B)   -   (C,D)
+                //     D (D,A) (D,B) (D,C)   -
+                if region_lhs == region_rhs {
+                    continue;
+                };
+
+                // Additionally, we don't want to check (y,x) if we've
+                // already checked (x,y), so we can trim the set a
+                // little further to only upper right set:
+                //         A     B     C     D
+                //     A   -   (A,B) (A,C) (A,D)
+                //     B   -     -   (B,C) (B,D)
+                //     C   -     -     -   (C,D)
+                //     D   -     -     -     -
+                if overlap_map.contains_key(&(region_rhs, region_lhs)) {
+                    continue;
+                }
+
+                if self.debug {
+                    debug!("Comparing '{}' against '{}'", region_lhs, region_rhs);
+                }
+
+                let overlaps: Vec<(H3Cell, H3Cell)> = polyfill_rhs
+                    .par_iter()
+                    .flat_map(|target_cell| collect_relationships(polyfill_lhs, *target_cell))
+                    .collect();
+
+                overlap_map.insert((region_lhs, region_rhs), overlaps);
+            }
+        }
+
+        type OverlapReport<'a> = HashMap<&'a str, HashMap<&'a str, Vec<(H3Cell, H3Cell)>>>;
+
+        let overlap_report: OverlapReport = {
+            let mut overlap_report = HashMap::new();
+            for ((region_lhs, region_rhs), conflicting_indices) in
+                overlap_map.into_iter().filter(|(_, v)| !v.is_empty())
+            {
+                overlap_report
+                    .entry(region_lhs)
+                    .or_insert(HashMap::new())
+                    .insert(region_rhs, conflicting_indices);
+            }
+            overlap_report
+        };
+
+        if overlap_report.is_empty() {
+            Ok(())
+        } else {
+            print_json(&overlap_report)?;
+            std::process::exit(1);
+        }
+    }
+}
+
+/// Returns a vector of any cells in the in `polyfill` that are
+/// related `target_cell`.
+///
+/// See [are_related] for more info.
+fn collect_relationships(polyfill: &[H3Cell], target_cell: H3Cell) -> Vec<(H3Cell, H3Cell)> {
+    polyfill
+        .iter()
+        .copied()
+        .zip(std::iter::repeat(target_cell))
+        .filter(|(poly_cell, target_cell)| are_related(*poly_cell, *target_cell))
+        .collect()
+}
+
+/// Returns `true` if any of the following are true:
+///
+/// - `lhs` and `rhs` the exact cell
+/// - `lhs` is a parent cell of `rhs`
+/// - `lhs` is a child cell of `rhs`
+fn are_related(lhs: H3Cell, rhs: H3Cell) -> bool {
+    if lhs.resolution() == rhs.resolution() {
+        lhs == rhs
+    } else if lhs.resolution() <= rhs.resolution() {
+        lhs == rhs
+            .get_parent(lhs.resolution())
+            .expect("we already checked that rhs is promotable to lhs's res")
+    } else {
+        rhs == lhs
+            .get_parent(lhs.resolution())
+            .expect("we already checked that rhs is promotable to lhs's res")
     }
 }
