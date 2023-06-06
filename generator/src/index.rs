@@ -63,9 +63,10 @@ fn to_cells(geometry: Geometry, resolution: Resolution) -> Result<Vec<CellIndex>
     Ok(collection)
 }
 
-fn to_geojson(cells: Vec<CellIndex>) -> Result<geojson::GeoJson> {
-    let geometry = cells.to_geojson()?;
-    Ok(geojson::GeoJson::from(geometry))
+fn to_geojson(cells: Vec<CellIndex>, resolution: Resolution) -> Result<geojson::GeoJson> {
+    let cells: Vec<_> = CellIndex::uncompact(cells, resolution).collect();
+    let geojson = cells.to_geojson()?;
+    Ok(geojson::GeoJson::from(geojson))
 }
 
 fn sort_cells(mut cells: Vec<CellIndex>) -> Result<Vec<CellIndex>> {
@@ -149,12 +150,14 @@ impl Generate {
 pub struct Export {
     input: path::PathBuf,
     output: path::PathBuf,
+    #[arg(default_value_t = Resolution::Seven, short, long)]
+    resolution: Resolution,
 }
 
 impl Export {
     pub fn run(&self) -> Result<()> {
         read_cells(&self.input)
-            .and_then(to_geojson)
+            .and_then(|cells| to_geojson(cells, self.resolution))
             .and_then(|geojson| write_geojson(geojson, &self.output))?;
         Ok(())
     }
