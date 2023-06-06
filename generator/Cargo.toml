@@ -11,13 +11,12 @@ readme = "README.md"
 [dependencies]
 anyhow = {version = "1", features = ["backtrace"]}
 clap = {version = "4", features = ["derive"]}
-geojson = {version = "0.24", features = ["geo-types"]}
 helium-proto = { git = "https://github.com/helium/proto", branch="master" }
 serde = {version = "1", features = ["derive"]}
 serde_json = "1"
 flate2 = "1"
-h3ron = {version = "0.16"}
-geo-types = "*"
+h3o = {version = "0", features = ["geo"]}
+geojson = "*"
 hextree = "0"
 byteorder = "1.4"
 rayon = "1.6"

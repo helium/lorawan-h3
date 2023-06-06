@@ -2,7 +2,6 @@ use anyhow::Result;
 use clap::Parser;
 mod index;
 mod params;
-mod polyfill;
 
 #[derive(Debug, clap::Parser)]
 #[command(version = env!("CARGO_PKG_VERSION"))]
