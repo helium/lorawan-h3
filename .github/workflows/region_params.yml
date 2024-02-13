@@ -8,7 +8,7 @@ on:
       - ".github/workflows/region_params.yml"
   pull_request:
     branches:
-      - master
+      - main
     paths:
       - "regions.txt"
       - "region_params/**"
