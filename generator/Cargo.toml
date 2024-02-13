@@ -21,4 +21,8 @@ hextree = "0"
 byteorder = "1.4"
 rayon = "1.6"
 log = "0"
+isocountry = "0"
 simple_logger = "4"
+
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+tikv-jemallocator = "0.5"

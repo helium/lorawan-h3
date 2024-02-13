@@ -7,7 +7,7 @@ use std::path;
 #[derive(Debug, clap::Args)]
 pub struct Cmd {
     #[command(subcommand)]
-    cmd: IndexCmd,
+    cmd: RegionsCmd,
 }
 
 impl Cmd {
@@ -17,13 +17,13 @@ impl Cmd {
 }
 
 #[derive(Debug, clap::Subcommand)]
-pub enum IndexCmd {
+pub enum RegionsCmd {
     Generate(Generate),
     Export(Export),
     Find(Find),
 }
 
-impl IndexCmd {
+impl RegionsCmd {
     pub fn run(&self) -> Result<()> {
         match self {
             Self::Generate(cmd) => cmd.run(),

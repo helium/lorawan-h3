@@ -3,12 +3,12 @@
 LoRaWAN regions represented as serialized (little endian) [H3] indices which
 build a h3 map based on a geojson source file.
 
-`lw-generator` is used to generate compressed h3 index file (extension `.h3idz`)
-for a given region [upstream geojson]. Note that generating h3 index files can
-take a VERY long time.
+`lw-generator` is used to generate a compressed h3 region index file (extension
+`.h3idz`) for a given region [upstream geojson]. Note that generating h3 region
+index files can take a VERY long time.
 
-The h3 index files are built as [release assets] for this repository when tagged
-with a `region_maps_YYYY.MM.DD` tag
+The h3 region index files are built as [release assets] for this repository when
+tagged with a `region_maps_YYYY.MM.DD` tag
 
 `lw-generator` is also used to generate compressed region parameters for a given
 [region parameters json] file.
@@ -25,7 +25,7 @@ parameters json] files.
 Generate IN865.res7.h3irz fom IN865.geojson.
 
 ```
-$ target/release/lw-generator index generate extern/hplans/IN865.geojson IN865.res7.h3idz
+$ target/release/lw-generator regions generate extern/hplans/IN865.geojson IN865.res7.h3idz
 ```
 
 A `Makefile` is supplied to make manual generation easier, but note that index

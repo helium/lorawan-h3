@@ -1,7 +1,17 @@
 use anyhow::Result;
 use clap::Parser;
+mod countries;
 mod index;
 mod params;
+mod regions;
+mod utils;
+
+#[cfg(not(target_env = "msvc"))]
+use tikv_jemallocator::Jemalloc;
+
+#[cfg(not(target_env = "msvc"))]
+#[global_allocator]
+static GLOBAL: Jemalloc = Jemalloc;
 
 #[derive(Debug, clap::Parser)]
 #[command(version = env!("CARGO_PKG_VERSION"))]
@@ -15,6 +25,8 @@ struct Cli {
 
 enum Cmd {
     Index(index::Cmd),
+    Regions(regions::Cmd),
+    Countries(countries::Cmd),
     Params(params::Cmd),
 }
 
@@ -22,6 +34,8 @@ impl Cmd {
     fn run(&self) -> Result<()> {
         match self {
             Self::Index(cmd) => cmd.run(),
+            Self::Regions(cmd) => cmd.run(),
+            Self::Countries(cmd) => cmd.run(),
             Self::Params(cmd) => cmd.run(),
         }
     }

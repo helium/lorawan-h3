@@ -52,7 +52,7 @@ jobs:
         env:
           RESOLUTION: 7
         run: |
-          lw-generator index generate extern/hplans/${{ matrix.region }}.geojson ${{ matrix.region }}.res${{ env.RESOLUTION }}.h3idz --resolution ${{ env.RESOLUTION }}
+          lw-generator regions generate extern/hplans/${{ matrix.region }}.geojson ${{ matrix.region }}.res${{ env.RESOLUTION }}.h3idz --resolution ${{ env.RESOLUTION }}
 
       - name: Release | Artifacts
         if: startsWith(github.ref, 'refs/tags/region_maps')
