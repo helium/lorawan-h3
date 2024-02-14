@@ -8,7 +8,7 @@ on:
       - ".github/workflows/region_maps.yml"
   pull_request:
     branches:
-      - master
+      - main
     paths:
       - "regions.txt"
       - "extern/hplans/**"
