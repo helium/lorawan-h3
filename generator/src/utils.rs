@@ -1,14 +1,14 @@
 use anyhow::Result;
-use byteorder::{ReadBytesExt, WriteBytesExt};
+use byteorder::ReadBytesExt;
 use flate2::{read::GzDecoder, write::GzEncoder, Compression};
 use geojson::GeoJson;
 use h3o::{
-    geom::{Geometry, ToCells, ToGeo},
+    geom::{ContainmentMode, Geometry, PolyfillConfig, ToCells, ToGeo},
     CellIndex, Resolution,
 };
 use std::{fs, io::Write, path};
 
-pub fn read_geojson<P: AsRef<path::Path>>(file: P) -> Result<Geometry<'static>> {
+pub fn read_geojson<P: AsRef<path::Path>>(file: P) -> Result<Geometry> {
     log::info!("Starting geojson read");
     let json = GeoJson::from_reader(fs::File::open(file.as_ref())?)?;
     log::info!("End geojson read");
@@ -16,7 +16,11 @@ pub fn read_geojson<P: AsRef<path::Path>>(file: P) -> Result<Geometry<'static>> 
 }
 
 pub fn to_cells(geometry: Geometry, resolution: Resolution) -> Result<Vec<CellIndex>> {
-    let collection = geometry.to_cells(resolution);
+    let collection = geometry
+        .to_cells(
+            PolyfillConfig::new(resolution)
+                .containment_mode(ContainmentMode::Covers)
+        );
     Ok(collection.collect())
 }
 
@@ -90,26 +94,6 @@ pub trait HexMapValueReader: std::cmp::PartialEq + Clone {
     fn read_value(reader: &mut dyn std::io::Read) -> Result<Self>
     where
         Self: Sized;
-}
-
-pub trait HexMapValueWriter {
-    fn write_value(&self, writer: &mut dyn std::io::Write) -> Result<()>;
-}
-
-pub fn write_hexmap<P: AsRef<path::Path>, V, C>(
-    map: &hextree::HexTreeMap<V, C>,
-    output: P,
-) -> Result<()>
-where
-    V: HexMapValueWriter,
-{
-    let file = fs::File::create(output.as_ref())?;
-    let mut writer = GzEncoder::new(file, Compression::default());
-    for (cell, value) in map.iter() {
-        writer.write_u64::<byteorder::LittleEndian>(cell.into_raw())?;
-        value.write_value(&mut writer)?;
-    }
-    Ok(())
 }
 
 pub fn read_hexmap<P: AsRef<path::Path>, V>(

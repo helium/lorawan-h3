@@ -1,14 +1,12 @@
-use crate::{print_json, utils::*};
+use crate::{print_json, country_map::Country, utils::*};
 use anyhow::Result;
-use byteorder::{ReadBytesExt, WriteBytesExt};
+use byteorder::ReadBytesExt;
 use h3o::{CellIndex, Resolution};
 use hextree::{compaction::EqCompactor, Cell, HexTreeMap};
 use isocountry::CountryCode;
 use rayon::prelude::*;
 use std::{
-    collections::HashMap,
-    path,
-    sync::{Arc, Mutex},
+    collections::HashMap, fs::File, io::{Cursor, Write}, path, sync::{Arc, Mutex}
 };
 
 /// Commands on region indexes
@@ -55,7 +53,7 @@ pub struct Generate {
     resolution: Resolution,
 }
 
-type CountryMap = HexTreeMap<CountryCode, EqCompactor>;
+type CountryMap = HexTreeMap<Country, EqCompactor>;
 
 impl Generate {
     pub fn run(&self) -> Result<()> {
@@ -83,7 +81,7 @@ impl Generate {
                     chunk
                         .iter()
                         .filter_map(to_hextree_cell)
-                        .for_each(|hex_cell| hextree.insert(hex_cell, country_code));
+                        .for_each(|hex_cell| hextree.insert(hex_cell, country_code.into()));
                 });
             log::info!("Inserted {}", country_code);
             Ok(())
@@ -104,7 +102,7 @@ impl Generate {
             })
             .collect::<Vec<path::PathBuf>>();
 
-        let hexmap: Arc<Mutex<HexTreeMap<CountryCode, _>>> =
+        let hexmap: Arc<Mutex<HexTreeMap<Country, _>>> =
             Arc::new(Mutex::new(HexTreeMap::with_compactor(EqCompactor)));
 
         paths.into_par_iter().for_each(|path| {
@@ -115,8 +113,13 @@ impl Generate {
         });
 
         let result = hexmap.lock().unwrap();
-        write_hexmap(&result, &self.output)?;
         println!("size: {}", result.len());
+        let mut disktree_buf = Vec::new();
+        let disktree_wtr = Cursor::new(&mut disktree_buf);
+        result.to_disktree(disktree_wtr, |wtr, val| wtr.write_all(&[*val as u8]))?;
+        let mut disktree_f = File::create(&self.output)?;
+        disktree_f.write_all(&disktree_buf)?;
+
         Ok(())
     }
 }
@@ -134,13 +137,6 @@ impl HexMapValueReader for CountryCode {
     fn read_value(reader: &mut dyn std::io::Read) -> Result<Self> {
         let decoded = reader.read_u32::<byteorder::LittleEndian>()?;
         Ok(CountryCode::for_id(decoded)?)
-    }
-}
-
-impl HexMapValueWriter for CountryCode {
-    fn write_value(&self, writer: &mut dyn std::io::Write) -> Result<()> {
-        writer.write_u32::<byteorder::LittleEndian>(self.numeric_id())?;
-        Ok(())
     }
 }
 

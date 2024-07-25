@@ -1,6 +1,7 @@
 use anyhow::Result;
 use clap::Parser;
 mod countries;
+mod country_map;
 mod index;
 mod params;
 mod regions;
