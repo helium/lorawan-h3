@@ -1,5 +1,6 @@
 use isocountry::CountryCode;
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[repr(u8)]
 pub enum Country {

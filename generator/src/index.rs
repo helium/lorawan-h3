@@ -102,7 +102,7 @@ impl Find {
                 let hex_set = read_hexset(&path)?;
                 for (name, needle) in &needles {
                     if hex_set.contains(*needle) {
-                        let match_list = matches.entry(name.to_string()).or_insert(vec![]);
+                        let match_list = matches.entry(name.to_string()).or_default();
 
                         // Avoid duplicate path entries if the same location is
                         // specified multiple times

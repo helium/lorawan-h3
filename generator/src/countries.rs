@@ -1,4 +1,4 @@
-use crate::{print_json, country_map::Country, utils::*};
+use crate::{country_map::Country, print_json, utils::*};
 use anyhow::Result;
 use byteorder::ReadBytesExt;
 use h3o::{CellIndex, Resolution};
@@ -6,7 +6,11 @@ use hextree::{compaction::EqCompactor, Cell, HexTreeMap};
 use isocountry::CountryCode;
 use rayon::prelude::*;
 use std::{
-    collections::HashMap, fs::File, io::{Cursor, Write}, path, sync::{Arc, Mutex}
+    collections::HashMap,
+    fs::File,
+    io::{Cursor, Write},
+    path,
+    sync::{Arc, Mutex},
 };
 
 /// Commands on region indexes

@@ -17,10 +17,7 @@ pub fn read_geojson<P: AsRef<path::Path>>(file: P) -> Result<Geometry> {
 
 pub fn to_cells(geometry: Geometry, resolution: Resolution) -> Result<Vec<CellIndex>> {
     let collection = geometry
-        .to_cells(
-            PolyfillConfig::new(resolution)
-                .containment_mode(ContainmentMode::Covers)
-        );
+        .to_cells(PolyfillConfig::new(resolution).containment_mode(ContainmentMode::Covers));
     Ok(collection.collect())
 }
 
@@ -116,6 +113,7 @@ pub fn write_geojson<P: AsRef<path::Path>>(geojson: GeoJson, output: P) -> Resul
     let mut writer = fs::OpenOptions::new()
         .write(true)
         .create(true)
+        .truncate(true)
         .open(output.as_ref())?;
     writer.write_all(geojson.to_string().as_bytes())?;
     Ok(())
